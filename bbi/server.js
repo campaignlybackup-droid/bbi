@@ -35,6 +35,12 @@ app.use('/admin', require('./routes/admin'));
 
 app.use((req, res) => res.status(404).render('404', { title: 'Page Not Found' }));
 
+// Global error handler — shows actual error instead of generic 500
+app.use((err, req, res, next) => {
+  console.error('ERROR:', err.stack || err.message || err);
+  res.status(500).send(`<h1>Server Error</h1><pre>${err.stack || err.message || err}</pre>`);
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 BBI Server running on port ${PORT}`);
 });
