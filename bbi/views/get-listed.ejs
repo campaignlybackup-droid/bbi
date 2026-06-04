@@ -1,0 +1,72 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <h1>Get Your Business Listed</h1>
+  <p>Submit your business for inclusion in Bharat Business Index rankings. It's free and independent.</p>
+</div>
+
+<div class="section" style="max-width:700px">
+  <% if(typeof success !== 'undefined' && success && success.length) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%= success %></div><% } %>
+  <% if(typeof error !== 'undefined' && error && error.length) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%= error %></div><% } %>
+
+  <div class="form-card">
+    <h3>Business Information</h3>
+    <form method="POST" action="/get-listed">
+      <div class="form-group">
+        <label>Business Name *</label>
+        <input type="text" name="business_name" required placeholder="e.g., ABC Auto Services" minlength="2">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>City *</label>
+          <select name="city_id" required>
+            <option value="">Select city</option>
+            <% cities.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select name="category_id" required>
+            <option value="">Select category</option>
+            <% categories.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Website (optional)</label>
+        <input type="url" name="website" placeholder="https://yourbusiness.com">
+      </div>
+      <div class="form-group">
+        <label>Description (optional)</label>
+        <textarea name="description" rows="3" placeholder="Brief description of your business" style="resize:vertical"></textarea>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">Your Contact Details</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input type="text" name="contact_name" required placeholder="Full name" minlength="2">
+        </div>
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" name="contact_phone" required placeholder="10-digit mobile" minlength="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" name="contact_email" required placeholder="you@email.com">
+      </div>
+
+      <button type="submit" class="btn btn-accent btn-lg btn-block" style="margin-top:var(--space-4)">
+        <i class="ti ti-send"></i> Submit for Review
+      </button>
+    </form>
+  </div>
+
+  <div style="background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);padding:14px 18px;font-size:var(--font-size-sm);color:var(--warn-text);display:flex;gap:10px;align-items:center;margin-top:var(--space-4)">
+    <i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0"></i>
+    Submission is free. Our team will review your business and add it to the index. Rankings are calculated independently — submitting a business does not guarantee any specific rank.
+  </div>
+</div>
+
+<%- include('partials/footer') %>

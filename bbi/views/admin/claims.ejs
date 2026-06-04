@@ -1,0 +1,48 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%= flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%= flash.error %></div><% } %>
+
+<div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-4);flex-wrap:wrap">
+  <a href="/admin/claims" class="btn btn-sm <%= !currentStatus ? 'btn-primary' : 'btn-outline' %>">All</a>
+  <a href="/admin/claims?status=pending" class="btn btn-sm <%= currentStatus === 'pending' ? 'btn-accent' : 'btn-outline' %>">Pending (<%= stats.pending %>)</a>
+  <a href="/admin/claims?status=verified" class="btn btn-sm <%= currentStatus === 'verified' ? 'btn-primary' : 'btn-outline' %>">Verified (<%= stats.verified %>)</a>
+  <a href="/admin/claims?status=rejected" class="btn btn-sm <%= currentStatus === 'rejected' ? 'btn-primary' : 'btn-outline' %>">Rejected (<%= stats.rejected %>)</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Business</th><th>Contact</th><th>Verification Details</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>
+      <% claims.forEach(cl => { %>
+      <tr>
+        <td><strong><a href="/business/<%= cl.business_slug %>" target="_blank" style="color:var(--navy)"><%= cl.business_name %></a></strong></td>
+        <td>
+          <div style="font-size:var(--font-size-xs)"><%= cl.contact_name %></div>
+          <div style="font-size:var(--font-size-xs);color:var(--text-muted)"><%= cl.contact_email %></div>
+        </td>
+        <td style="font-size:var(--font-size-xs);color:var(--text-secondary);max-width:200px"><%= cl.verification_details || '—' %></td>
+        <td><span class="badge <%= cl.status === 'pending' ? 'badge-gold' : cl.status === 'verified' ? 'badge-green' : 'badge-navy' %>"><%= cl.status %></span></td>
+        <td style="font-size:var(--font-size-xs);color:var(--text-muted)"><%= cl.created_at.slice(0,10) %></td>
+        <td>
+          <% if(cl.status === 'pending') { %>
+          <div style="display:flex;gap:var(--space-1)">
+            <form method="POST" action="/admin/claims/<%= cl.id %>/verify">
+              <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Verify this claim?')"><i class="ti ti-check"></i></button>
+            </form>
+            <form method="POST" action="/admin/claims/<%= cl.id %>/reject">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this claim?')"><i class="ti ti-x"></i></button>
+            </form>
+          </div>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+      <% if(!claims.length) { %>
+      <tr><td colspan="6" class="text-center" style="padding:var(--space-8);color:var(--text-muted)">No claims found.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

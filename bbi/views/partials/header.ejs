@@ -1,0 +1,37 @@
+<%# BBI — Shared Header Partial %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'BBI — Bharat Business Index' %></title>
+  <% if(typeof metaDescription !== 'undefined') { %><meta name="description" content="<%= metaDescription %>"><% } %>
+  <% if(typeof canonicalUrl !== 'undefined') { %><link rel="canonical" href="<%= canonicalUrl %>"><% } %>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="<%= typeof title !== 'undefined' ? title : 'BBI' %>">
+  <% if(typeof metaDescription !== 'undefined') { %><meta property="og:description" content="<%= metaDescription %>"><% } %>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bharat Business Index">
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">BBI <span>·</span> Bharat Business Index</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+    <i class="ti ti-menu-2"></i>
+  </button>
+  <div class="nav-links">
+    <a href="/search">Search</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/get-listed" class="nav-cta">Get Listed</a>
+  </div>
+</nav>
