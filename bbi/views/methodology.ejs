@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Methodology — BBI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo">BBI <span>·</span> Bharat Business Index</a>
+  <div class="nav-links"><a href="/">Home</a></div>
+</nav>
+<div style="background:#0D2E5E;padding:28px 40px">
+  <h1 style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px">How we rank businesses</h1>
+  <p style="font-size:13px;color:rgba(255,255,255,.6)">Transparent, independent, updated monthly</p>
+</div>
+<div class="section" style="max-width:720px">
+  <% const steps = [
+    ['Data collection','Review counts, ratings, website presence, and social signals collected from verified public sources every month.'],
+    ['Automatic scoring','Each factor is scored against defined thresholds. Scores are weighted and combined into a final score out of 100.'],
+    ['Editorial review','Our team manually reviews top businesses and may apply a quality score based on service standards.'],
+    ['Monthly recalculation','Rankings are fully recalculated on the 1st of every month. All history is preserved — nothing is ever deleted.'],
+    ['Sponsored integrity','Sponsored placements are clearly labeled and kept entirely separate from editorial rankings.'],
+    ['How to improve','Businesses can improve their rank by growing reviews, completing their profile, and maintaining quality.']
+  ] %>
+  <% steps.forEach(([title, text], i) => { %>
+  <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #f0f2f5">
+    <div style="width:32px;height:32px;border-radius:50%;background:#0D2E5E;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0"><%= i+1 %></div>
+    <div>
+      <div style="font-size:14px;font-weight:600;color:#1A1A2E;margin-bottom:3px"><%= title %></div>
+      <div style="font-size:13px;color:#4A5568"><%= text %></div>
+    </div>
+  </div>
+  <% }) %>
+
+  <div style="background:#fef9ec;border:1px solid #fcd34d;border-radius:8px;padding:14px 18px;font-size:13px;color:#92400e;margin-top:20px;display:flex;gap:10px;align-items:center">
+    <i class="ti ti-shield-check" style="font-size:18px;flex-shrink:0"></i>
+    BBI's credibility depends on ranking integrity. Sponsored businesses can never automatically reach #1.
+  </div>
+</div>
+<footer>
+  <div class="logo">BBI <span>·</span> Bharat Business Index</div>
+  <div class="footer-copy">© 2026 BBI. Rankings are independent.</div>
+</footer>
+</body>
+</html>
