@@ -11,17 +11,24 @@ router.get('/login', (req, res) => {
   res.render('admin/login', { title: 'Admin Login', error: req.flash('error'), success: req.flash('success') });
 });
 
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  const admin = db.prepare(`SELECT * FROM admins WHERE email=?`).get(email);
-  if (!admin || !bcrypt.compareSync(password, admin.password)) {
-    req.flash('error', 'Invalid email or password.');
-    return res.redirect('/admin/login');
+router.post('/login', (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const admin = db.prepare(`SELECT * FROM admins WHERE email=?`).get(email);
+    if (!admin || !bcrypt.compareSync(password, admin.password)) {
+      req.flash('error', 'Invalid email or password.');
+      return res.redirect('/admin/login');
+    }
+    req.session.adminId = admin.id;
+    req.session.adminName = admin.name;
+    req.session.adminRole = admin.role;
+    req.session.save((err) => {
+      if (err) return next(err);
+      res.redirect('/admin');
+    });
+  } catch (err) {
+    next(err);
   }
-  req.session.adminId = admin.id;
-  req.session.adminName = admin.name;
-  req.session.adminRole = admin.role;
-  res.redirect('/admin');
 });
 
 router.get('/logout', (req, res) => {
