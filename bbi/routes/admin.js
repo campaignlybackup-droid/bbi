@@ -53,7 +53,7 @@ router.get('/', requireAuth, (req, res) => {
     JOIN categories cat ON cat.id=b.category_id
     ORDER BY b.created_at DESC LIMIT 5
   `).all();
-  res.render('admin/dashboard', { stats, recent, title: 'Dashboard', admin: req.session });
+  res.render('admin/dashboard', { stats, recent, title: 'Dashboard', admin: req.session, flash: { success: req.flash('success'), error: req.flash('error') } });
 });
 
 // BUSINESSES
@@ -171,7 +171,7 @@ router.get('/rankings/history', requireAuth, (req, res) => {
     JOIN categories cat ON cat.id=rh.category_id
     ORDER BY rh.created_at DESC LIMIT 100
   `).all();
-  res.render('admin/ranking-history', { history, title: 'Ranking History', admin: req.session });
+  res.render('admin/ranking-history', { history, title: 'Ranking History', admin: req.session, flash: { success: req.flash('success'), error: req.flash('error') } });
 });
 
 // CITIES
