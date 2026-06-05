@@ -1,0 +1,135 @@
+<%- include('partials/header') %>
+
+<% if(typeof faqSchema !== 'undefined' && faqSchema) { %>
+<script type="application/ld+json"><%- JSON.stringify(faqSchema) %></script>
+<% } %>
+
+<div class="hero">
+  <h1>India's trusted business rankings</h1>
+  <p>Independent, transparent rankings updated every month. Based on verified reviews and quality metrics.</p>
+  <form class="search-bar" action="/search" method="GET">
+    <input type="text" name="q" placeholder="Search businesses, categories, or cities…" aria-label="Search">
+    <button type="submit">Search</button>
+  </form>
+  <div class="hero-trust">
+    <div class="hero-trust-item"><i class="ti ti-shield-check"></i> Independent rankings</div>
+    <div class="hero-trust-item"><i class="ti ti-refresh"></i> Updated monthly</div>
+    <div class="hero-trust-item"><i class="ti ti-star"></i> Verified reviews</div>
+  </div>
+</div>
+
+<% if(featured.length) { %>
+<div class="section">
+  <div class="section-label">Featured rankings</div>
+  <div class="section-title"><%= featuredCat ? `Top ${featuredCat}` : 'Top Ranked Businesses' %><%= featuredCity ? ` — ${featuredCity}` : '' %></div>
+  <div class="section-sub">Based on verified reviews · Rankings updated monthly</div>
+
+  <div class="rank-grid">
+    <% featured.slice(0, 3).forEach(b => { %>
+    <a href="/business/<%= b.slug %>" class="rcard animate-in">
+      <div class="rcard-top">
+        <div class="rank-num">#<%= b.rank_position %></div>
+        <span class="move move-<%= b.movement.direction %>"><%= b.movement.label %></span>
+      </div>
+      <div class="biz-name"><%= b.name %></div>
+      <div class="biz-loc"><%= b.city_name %> · <%= b.cat_name %></div>
+      <% if(b.google_rating) { %>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">
+        <i class="ti ti-star-filled" style="color:var(--gold);font-size:14px"></i> <%= b.google_rating %> · <%= b.google_review_count %> reviews
+      </div>
+      <% } %>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span class="score-label">Ranking score</span>
+        <span class="score-val"><%= Math.round(b.final_score) %> / 100</span>
+      </div>
+      <div class="score-track"><div class="score-fill score-fill-navy" style="width:<%= b.final_score %>%"></div></div>
+      <div class="badges">
+        <% if(b.badge) { %><span class="badge badge-gold"><%= b.badge %></span><% } %>
+        <% if(b.verified) { %><span class="badge badge-navy">BBI Verified</span><% } %>
+      </div>
+    </a>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<hr class="divider">
+
+<!-- Trust Section -->
+<div class="section">
+  <div class="section-label">Why trust BBI</div>
+  <div class="section-title" style="margin-bottom:var(--space-5)">How we ensure ranking integrity</div>
+  <div class="trust-grid">
+    <div class="trust-card">
+      <i class="ti ti-shield-check"></i>
+      <h4>Independent</h4>
+      <p>Rankings are never influenced by payments</p>
+    </div>
+    <div class="trust-card">
+      <i class="ti ti-chart-bar"></i>
+      <h4>Data-Driven</h4>
+      <p>Based on verified reviews and quality metrics</p>
+    </div>
+    <div class="trust-card">
+      <i class="ti ti-refresh"></i>
+      <h4>Updated Monthly</h4>
+      <p>Fresh rankings on the 1st of every month</p>
+    </div>
+    <div class="trust-card">
+      <i class="ti ti-eye"></i>
+      <h4>Transparent</h4>
+      <p>Full methodology published publicly</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Categories -->
+<div class="section">
+  <div class="section-label">Browse by category</div>
+  <div class="section-title" style="margin-bottom:var(--space-5)">What are you looking for?</div>
+
+  <div class="cat-grid">
+    <% categories.forEach(cat => { %>
+    <a href="/category/<%= cat.slug %>" class="cat-card">
+      <div class="cat-icon"><i class="ti <%= cat.icon %>"></i></div>
+      <div class="cat-name"><%= cat.name %></div>
+      <% if(countMap[cat.id]) { %><div class="cat-count"><%= countMap[cat.id] %> businesses</div><% } %>
+    </a>
+    <% }) %>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Cities -->
+<div class="section">
+  <div class="section-label">Browse by city</div>
+  <div class="section-title" style="margin-bottom:var(--space-4)">Top cities</div>
+  <div class="city-row">
+    <% cities.forEach(city => { %>
+    <a href="/city/<%= city.slug || city.name.toLowerCase().replace(/ /g,'-') %>" class="city-pill">
+      <i class="ti ti-map-pin" style="font-size:14px;margin-right:4px;color:var(--navy)"></i> <%= city.name %>
+    </a>
+    <% }) %>
+  </div>
+</div>
+
+<% if(faqs.length) { %>
+<hr class="divider">
+<div class="section">
+  <div class="section-label">FAQ</div>
+  <div class="section-title" style="margin-bottom:var(--space-4)">Frequently asked questions</div>
+  <div class="profile-card">
+    <% faqs.forEach(faq => { %>
+    <div class="faq-item">
+      <div class="faq-question"><%= faq.question %></div>
+      <div class="faq-answer"><%= faq.answer %></div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>
