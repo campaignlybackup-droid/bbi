@@ -20,6 +20,8 @@ const path = require('path');
 const { recalculateAllRankings } = require('./services/rankingService');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy for secure cookies
+
 const PORT = process.env.PORT || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
