@@ -18,45 +18,41 @@ const { validateInquiry, validateClaim } = require('../middleware/validation');
 // HOMEPAGE — M-05: Dynamic, no Jaipur hardcoding
 // ============================================
 router.get('/', (req, res) => {
-  const categories = db.prepare(`SELECT * FROM categories WHERE active=1 ORDER BY name`).all();
-  const cities = db.prepare(`SELECT * FROM cities WHERE active=1 ORDER BY name`).all();
+  // Get top categories
+  const topCategories = db.prepare(`
+    SELECT c.id, c.name, c.slug, c.icon, COUNT(b.id) as biz_count
+    FROM categories c
+    LEFT JOIN businesses b ON b.category_id = c.id AND b.active = 1
+    WHERE c.active = 1
+    GROUP BY c.id
+    ORDER BY biz_count DESC
+    LIMIT 8
+  `).all();
 
-  // Dynamic featured rankings — get top 3 from the LATEST ranking across ALL cities
-  const featured = db.prepare(`
-    SELECT rh.rank_position, rh.final_score, rh.ranking_date,
-           b.id, b.name, b.slug, b.verified, b.sponsored, b.description,
-           b.google_rating, b.google_review_count,
-           c.name as city_name, c.slug as city_slug,
-           cat.name as cat_name, cat.slug as cat_slug
-    FROM ranking_history rh
-    JOIN businesses b ON b.id = rh.business_id AND b.active = 1
-    JOIN cities c ON c.id = rh.city_id
-    JOIN categories cat ON cat.id = rh.category_id
-    WHERE rh.ranking_date = (
-      SELECT MAX(rh2.ranking_date) FROM ranking_history rh2
-      WHERE rh2.city_id = rh.city_id AND rh2.category_id = rh.category_id
-    )
-    AND rh.rank_position <= 3
-    ORDER BY rh.final_score DESC
+  // Get top cities
+  const topCities = db.prepare(`
+    SELECT c.id, c.name, c.slug, c.state, COUNT(b.id) as biz_count
+    FROM cities c
+    LEFT JOIN businesses b ON b.city_id = c.id AND b.active = 1
+    WHERE c.active = 1
+    GROUP BY c.id
+    ORDER BY biz_count DESC
+    LIMIT 8
+  `).all();
+
+  // Get featured rankings
+  const featuredRankings = db.prepare(`
+    SELECT c.name as city_name, c.slug as city_slug, 
+           cat.name as cat_name, cat.slug as cat_slug, cat.icon as cat_icon,
+           COUNT(b.id) as biz_count
+    FROM businesses b
+    JOIN cities c ON c.id = b.city_id
+    JOIN categories cat ON cat.id = b.category_id
+    WHERE b.active = 1 AND c.active = 1 AND cat.active = 1
+    GROUP BY c.id, cat.id
+    ORDER BY biz_count DESC
     LIMIT 6
   `).all();
-
-  const enriched = featured.map(b => ({
-    ...b,
-    movement: getMovement(b.id, b.rank_position),
-    badge: getTrendBadge(b.id, b.rank_position),
-  }));
-
-  // Group by city for display
-  const featuredCity = enriched.length > 0 ? enriched[0].city_name : '';
-  const featuredCat = enriched.length > 0 ? enriched[0].cat_name : '';
-
-  // Get category business counts
-  const catCounts = db.prepare(`
-    SELECT category_id, COUNT(*) as count FROM businesses WHERE active=1 GROUP BY category_id
-  `).all();
-  const countMap = {};
-  catCounts.forEach(c => countMap[c.category_id] = c.count);
 
   // SEO FAQ
   const seoContent = getSeoContent('homepage');
@@ -64,13 +60,14 @@ router.get('/', (req, res) => {
   if (seoContent && seoContent.faq_json) {
     try { faqs = JSON.parse(seoContent.faq_json); } catch (e) {}
   }
-
   const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
 
   res.render('index', {
-    categories, cities, featured: enriched, countMap,
-    featuredCity, featuredCat,
-    faqSchema, faqs,
+    topCategories, 
+    topCities, 
+    featuredRankings,
+    faqSchema, 
+    faqs,
     title: 'BBI — India\'s Trusted Business Rankings',
     metaDescription: 'Bharat Business Index — Independent, transparent business rankings across Indian cities. Updated monthly based on verified reviews.',
     canonicalUrl: BASE_URL,
