@@ -1,0 +1,142 @@
+/**
+ * BBI — Stub AI Provider
+ * Template-based content generation that works without any API key.
+ * Returns reasonable defaults for all AI operations.
+ */
+
+async function generateListingContent(business) {
+  const name = business.name || 'Business';
+  const city = business.city_name || 'the city';
+  const category = business.cat_name || 'local services';
+
+  return {
+    seo_title: `${name} — Top ${category} in ${city} | BBI Ranked`,
+    meta_description: `${name} is a BBI-ranked ${category} provider in ${city}. Find reviews, ratings, and ranking details on Bharat Business Index.`,
+    summary: `${name} is a trusted provider of ${category} in ${city}, ranked by Bharat Business Index based on customer reviews, service quality, and business credibility.`,
+    tags: category.toLowerCase().replace(/&/g, '').split(/\s+/).filter(w => w.length > 2).join(', '),
+  };
+}
+
+async function generateFaqContent(business) {
+  const name = business.name || 'this business';
+  const city = business.city_name || 'the city';
+  const category = business.cat_name || 'services';
+
+  return [
+    {
+      question: `What is ${name}'s BBI ranking?`,
+      answer: `${name} is ranked among the top ${category} providers in ${city} by Bharat Business Index, based on verified customer reviews, service quality metrics, and editorial assessment.`,
+    },
+    {
+      question: `How does ${name} compare to other ${category} in ${city}?`,
+      answer: `BBI ranks ${name} based on multiple factors including Google review ratings, review volume, online presence, profile completeness, and editorial quality assessment. Visit the ranking page for detailed comparisons.`,
+    },
+    {
+      question: `Is ${name} verified by BBI?`,
+      answer: business.verified
+        ? `Yes, ${name} has been verified by Bharat Business Index. This means their business information has been independently confirmed.`
+        : `${name} has not yet been verified by BBI. Businesses can apply for verification to increase their trust score.`,
+    },
+  ];
+}
+
+async function generateSeoContent(pageType, data) {
+  switch (pageType) {
+    case 'city':
+      return {
+        title: `Top Businesses in ${data.city_name} — BBI Rankings`,
+        meta_description: `Discover the highest-ranked businesses in ${data.city_name}. Independent rankings by Bharat Business Index based on verified reviews and quality metrics.`,
+        editorial: `${data.city_name} is home to a thriving business community. BBI's monthly rankings help consumers find the most trusted service providers across multiple categories.`,
+      };
+    case 'category':
+      return {
+        title: `Best ${data.cat_name} in India — BBI Rankings`,
+        meta_description: `Find the top-ranked ${data.cat_name} across Indian cities. BBI's transparent rankings are based on customer reviews, quality metrics, and editorial assessment.`,
+        editorial: `Looking for the best ${data.cat_name}? Bharat Business Index ranks providers across Indian cities using our transparent, independent methodology.`,
+      };
+    case 'ranking':
+      return {
+        title: `Top ${data.cat_name} in ${data.city_name} — BBI Rankings ${new Date().getFullYear()}`,
+        meta_description: `${new Date().getFullYear()} rankings for the best ${data.cat_name} in ${data.city_name}. Independent, transparent rankings by Bharat Business Index.`,
+        editorial: `Our ${data.city_name} ${data.cat_name} rankings are updated monthly. Businesses are scored on customer reviews, review volume, online presence, and editorial assessment.`,
+      };
+    default:
+      return { title: 'BBI — Bharat Business Index', meta_description: 'India\'s trusted business rankings.', editorial: '' };
+  }
+}
+
+async function generateDigest(rankingData) {
+  const totalBiz = rankingData.businesses || 0;
+  const combos = rankingData.combos || 0;
+  const month = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+  return {
+    title: `BBI Monthly Ranking Digest — ${month}`,
+    summary: `This month's BBI rankings cover ${totalBiz} businesses across ${combos} city-category combinations. Rankings were recalculated using the latest review data, online presence metrics, and editorial assessments.`,
+    highlights: [
+      `${totalBiz} businesses ranked across ${combos} categories`,
+      'All rankings updated with latest Google review data',
+      'New businesses added to the index',
+    ],
+  };
+}
+
+async function generateSocialContent(business, rankData) {
+  const name = business.name || 'Business';
+  const rank = rankData?.rank_position || '';
+  const city = business.city_name || '';
+  const category = business.cat_name || '';
+
+  return {
+    linkedin: `🏆 ${name} has been ranked #${rank} in ${category} in ${city} by Bharat Business Index (@BBI).\n\nBBI rankings are based on verified customer reviews, service quality, and independent editorial assessment.\n\n#BBI #BusinessRanking #${city.replace(/\s/g, '')} #${category.replace(/[\s&]/g, '')}`,
+    instagram: `🏆 Congratulations to ${name} for achieving Rank #${rank} in ${category}, ${city}! 🎉\n\nBBI rankings are updated monthly based on real customer reviews.\n\n#BBI #BharatBusinessIndex #Ranked #${city.replace(/\s/g, '')}`,
+    newsletter: `${name} ranked #${rank} in ${category} (${city}) — BBI's latest monthly rankings are now live. See the full list at bbi.in.`,
+  };
+}
+
+async function moderateContent(text) {
+  // Simple rule-based moderation
+  const spamKeywords = ['buy now', 'click here', 'limited offer', 'act fast', 'free money', 'guaranteed'];
+  const lowerText = (text || '').toLowerCase();
+
+  const isSpam = spamKeywords.some(kw => lowerText.includes(kw));
+  const hasExcessiveCaps = text && (text.replace(/[^A-Z]/g, '').length / text.length) > 0.5;
+  const hasKeywordStuffing = text && new Set(text.toLowerCase().split(/\s+/)).size < text.split(/\s+/).length * 0.3;
+
+  return {
+    isClean: !isSpam && !hasExcessiveCaps && !hasKeywordStuffing,
+    flags: [
+      ...(isSpam ? ['Potential spam detected'] : []),
+      ...(hasExcessiveCaps ? ['Excessive capitalization'] : []),
+      ...(hasKeywordStuffing ? ['Possible keyword stuffing'] : []),
+    ],
+  };
+}
+
+async function suggestRelated(businessId, db) {
+  // Simple category/city-based suggestions
+  try {
+    const business = db.prepare(`SELECT category_id, city_id FROM businesses WHERE id=?`).get(businessId);
+    if (!business) return { businesses: [], categories: [], rankings: [] };
+
+    const related = db.prepare(`
+      SELECT id, name, slug FROM businesses
+      WHERE category_id=? AND city_id=? AND id!=? AND active=1
+      ORDER BY RANDOM() LIMIT 3
+    `).all(business.category_id, business.city_id, businessId);
+
+    return { businesses: related, categories: [], rankings: [] };
+  } catch (e) {
+    return { businesses: [], categories: [], rankings: [] };
+  }
+}
+
+module.exports = {
+  generateListingContent,
+  generateFaqContent,
+  generateSeoContent,
+  generateDigest,
+  generateSocialContent,
+  moderateContent,
+  suggestRelated,
+};

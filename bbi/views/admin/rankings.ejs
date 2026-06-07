@@ -1,0 +1,45 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+  <div class="form-card">
+    <h3>Recalculate Rankings</h3>
+    <p style="font-size:13px;color:#4A5568;margin-bottom:14px">Select a city and category to recalculate all rankings. Historical data is preserved.</p>
+    <form method="POST" action="/admin/rankings/recalculate">
+      <div class="form-group">
+        <label>City</label>
+        <select name="city_id" required>
+          <option value="">Select city</option>
+          <% cities.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category_id" required>
+          <option value="">Select category</option>
+          <% categories.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-accent">Recalculate Now</button>
+    </form>
+  </div>
+
+  <div class="form-card">
+    <h3>Ranking Info</h3>
+    <div style="font-size:13px;color:#4A5568;line-height:1.8">
+      <div>• Rankings are recalculated based on review scores, volume, website, verification, and editorial scores.</div>
+      <div>• Every recalculation creates a new record in ranking history.</div>
+      <div>• Historical records are never deleted.</div>
+      <div>• Sponsored businesses are labeled but never auto-ranked #1.</div>
+    </div>
+    <div style="margin-top:14px">
+      <a href="/admin/rankings/history" class="btn btn-outline"><i class="ti ti-history"></i> View Full History</a>
+    </div>
+  </div>
+
+</div>
+
+<%- include('layout-bottom') %>
