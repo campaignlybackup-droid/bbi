@@ -1,0 +1,53 @@
+<%- include('partials/header') %>
+<script type="application/ld+json"><%- JSON.stringify(breadcrumbSchema) %></script>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="/">Home</a> <span>/</span> <%= city.name %></div>
+  <h1>Top Businesses in <%= city.name %></h1>
+  <p><%= city.state %> · <%= categoryRankings.length %> categories ranked</p>
+</div>
+
+<div class="section">
+  <% if(categoryRankings.length) { %>
+  <div class="section-label">Rankings by category</div>
+  <div class="section-title" style="margin-bottom:var(--space-5)">Explore <%= city.name %> rankings</div>
+  <div class="cat-grid">
+    <% categoryRankings.forEach(cat => { %>
+    <a href="/rankings/<%= city.slug || city.name.toLowerCase().replace(/ /g,'-') %>/<%= cat.slug %>" class="cat-card">
+      <div class="cat-icon"><i class="ti <%= cat.icon %>"></i></div>
+      <div class="cat-name"><%= cat.name %></div>
+      <div class="cat-count"><%= cat.biz_count %> businesses</div>
+    </a>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <% if(topBusinesses.length) { %>
+  <div style="margin-top:var(--space-6)">
+    <div class="section-label">Top rated</div>
+    <div class="section-title" style="margin-bottom:var(--space-4)">Highest ranked in <%= city.name %></div>
+    <div class="rank-grid" style="grid-template-columns:1fr">
+      <% topBusinesses.forEach(b => { %>
+      <a href="/business/<%= b.slug %>" class="rcard">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="biz-name"><%= b.name %></div>
+            <div class="biz-loc"><%= b.cat_name %></div>
+          </div>
+          <div style="text-align:right">
+            <% if(b.current_rank) { %><span class="rank-num" style="font-size:18px">#<%= b.current_rank %></span><% } %>
+          </div>
+        </div>
+        <% if(b.google_rating) { %>
+        <div style="font-size:var(--font-size-xs);color:var(--text-secondary);margin-top:var(--space-2)">
+          <i class="ti ti-star-filled" style="color:var(--gold)"></i> <%= b.google_rating %> · <%= b.google_review_count %> reviews
+        </div>
+        <% } %>
+      </a>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>
