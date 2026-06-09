@@ -1,0 +1,24 @@
+<%# BBI — Mobile Bottom Navigation %>
+
+<nav class="mobile-nav" aria-label="Mobile navigation">
+  <a href="/" class="<%= typeof currentPath !== 'undefined' && currentPath === '/' ? 'active' : '' %>" aria-label="Home">
+    <i class="ti ti-home"></i>
+    Home
+  </a>
+  <a href="/search" class="<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/search') ? 'active' : '' %>" aria-label="Search">
+    <i class="ti ti-search"></i>
+    Search
+  </a>
+  <a href="/rankings" class="<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/rankings') ? 'active' : '' %>" aria-label="Rankings">
+    <i class="ti ti-trophy"></i>
+    Rankings
+  </a>
+  <a href="/city" class="<%= typeof currentPath !== 'undefined' && (currentPath.startsWith('/city')) ? 'active' : '' %>" aria-label="Cities">
+    <i class="ti ti-map-pin"></i>
+    Cities
+  </a>
+  <a href="/get-listed" class="<%= typeof currentPath !== 'undefined' && currentPath === '/get-listed' ? 'active' : '' %>" aria-label="Get Listed">
+    <i class="ti ti-plus"></i>
+    Get Listed
+  </a>
+</nav>
