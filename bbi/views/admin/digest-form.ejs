@@ -1,0 +1,84 @@
+<%- include('layout-top') %>
+
+<div class="header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+  <h2><%= title %></h2>
+  <a href="/admin/digests" class="btn btn-outline"><i class="ti ti-arrow-left"></i> Back to Digests</a>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px">
+  <div class="form-card" style="padding:0;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:#fafbfc">
+      <h3 style="margin:0;font-size:16px"><i class="ti ti-list" style="color:var(--navy);margin-right:8px"></i> Digest Entries</h3>
+    </div>
+    <table class="table-responsive" style="width:100%">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Title</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(!entries || entries.length === 0) { %>
+          <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted)">No entries found for this month.</td></tr>
+        <% } %>
+        <% entries.forEach(e => { %>
+        <tr>
+          <td>
+            <% if(e.entry_type === 'biggest_mover') { %><span class="badge badge-green">Mover</span><% } %>
+            <% if(e.entry_type === 'new_entrant') { %><span class="badge badge-blue">New Entrant</span><% } %>
+            <% if(e.entry_type === 'new_city') { %><span class="badge badge-gold">New City</span><% } %>
+            <% if(e.entry_type === 'new_category') { %><span class="badge badge-navy">New Category</span><% } %>
+          </td>
+          <td><strong><%= e.title %></strong></td>
+          <td style="font-size:12px;color:var(--text-secondary)"><%= e.description %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    <div class="ai-panel" style="margin-bottom:var(--space-4)">
+      <h3><i class="ti ti-wand"></i> AI Newsletter Writer</h3>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Generate an engaging email newsletter summarizing these changes.</p>
+      
+      <div class="form-group">
+        <textarea id="newsletterContent" rows="12" style="width:100%;resize:vertical;font-family:monospace;font-size:12px" placeholder="AI generated summary will appear here..."></textarea>
+      </div>
+
+      <input type="hidden" id="digestMonth" value="<%= month %>">
+      
+      <button type="button" class="ai-btn" id="aiDigestBtn" onclick="generateNewsletter()">
+        <i class="ti ti-mail"></i> Generate Newsletter
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function generateNewsletter() {
+  const month = document.getElementById('digestMonth').value;
+  const btn = document.getElementById('aiDigestBtn');
+  btn.classList.add('loading');
+  try {
+    const res = await fetch('/admin/api/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'digest_summary', businessInfo: { month } })
+    });
+    const data = await res.json();
+    if(data.success && data.data) {
+      document.getElementById('newsletterContent').value = data.data.content || '';
+    } else {
+      alert('Failed: ' + data.error);
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+</script>
+
+<%- include('layout-bottom') %>
