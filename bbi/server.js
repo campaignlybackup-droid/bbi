@@ -1,0 +1,180 @@
+/**
+ * BBI — Bharat Business Index
+ * Main server entry point.
+ * M-01: No hardcoded session secret — requires SESSION_SECRET env var.
+ * M-10: Monthly ranking recalculation via node-cron.
+ */
+
+require('dotenv').config();
+
+const express = require('express');
+const session = require('express-session');
+const flash = require('connect-flash');
+const methodOverride = require('method-override');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const cron = require('node-cron');
+const path = require('path');
+const { recalculateAllRankings } = require('./services/rankingService');
+
+const app = express();
+app.set('trust proxy', 1); // Trust first proxy for secure cookies
+
+const PORT = process.env.PORT || 3000;
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+// ============================================
+// M-01: Session secret security
+// ============================================
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET || SESSION_SECRET.length < 16) {
+  if (IS_PROD) {
+    console.error('❌ FATAL: SESSION_SECRET environment variable is required in production.');
+    console.error('   Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  WARNING: Using development session secret. Set SESSION_SECRET in .env for production.');
+  }
+}
+
+// ============================================
+// View engine
+// ============================================
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// ============================================
+// Security & Performance middleware
+// ============================================
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+app.use(compression());
+
+// Rate limiting on auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: 'Too many login attempts. Please try again later.',
+});
+
+// ============================================
+// Standard middleware
+// ============================================
+if (!IS_PROD) app.use(morgan('dev'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(methodOverride('_method'));
+
+// Static files with cache headers
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: IS_PROD ? '1y' : 0,
+  etag: true,
+}));
+
+// ============================================
+// Session
+// ============================================
+app.use(session({
+  secret: SESSION_SECRET || 'dev-only-bbi-secret-not-for-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: 'lax',
+  },
+}));
+app.use(flash());
+
+// ============================================
+// Global template variables
+// ============================================
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path;
+  res.locals.BASE_URL = process.env.BASE_URL || 'https://bharatbusinessindex.com';
+  next();
+});
+
+// ============================================
+// Routes
+// ============================================
+app.use('/', require('./routes/seo'));        // sitemap.xml, robots.txt, badges
+app.use('/', require('./routes/search'));     // /search, /api/search/*
+app.use('/blog', require('./routes/blog'));
+app.use('/digest', require('./routes/digest'));
+app.use('/', require('./routes/public'));     // homepage, rankings, business, city, category, methodology, get-listed, claim
+app.use('/admin/login', authLimiter);        // Rate limit login attempts — must be before admin router
+app.use('/admin', require('./routes/admin'));
+
+// ============================================
+// 404 handler
+// ============================================
+app.use((req, res) => res.status(404).render('404', { title: 'Page Not Found' }));
+
+// ============================================
+// Error handler
+// ============================================
+app.use((err, req, res, next) => {
+  console.error('ERROR:', err.stack || err.message || err);
+  if (IS_PROD) {
+    res.status(500).render('404', { title: 'Server Error' });
+  } else {
+    res.status(500).send(`<h1>Server Error</h1><pre>${err.stack || err.message || err}</pre>`);
+  }
+});
+
+// ============================================
+// M-10: Monthly ranking cron job
+// ============================================
+cron.schedule('0 2 1 * *', async () => {
+  // Runs at 2:00 AM on the 1st of every month
+  console.log('🔄 Running monthly tasks...');
+  try {
+    // 1. Recalculate Rankings
+    const result = recalculateAllRankings();
+    console.log(`✅ Monthly recalculation complete: ${result.combos} combos, ${result.businesses} businesses ranked.`);
+    
+    // 2. Generate movements and achievements
+    const achievementService = require('./services/achievementService');
+    const movementsResult = achievementService.generateMonthlyMovements();
+    console.log(`✅ Movements generated: ${movementsResult} processed.`);
+    const achievementsResult = achievementService.generateMonthlyAchievements();
+    console.log(`✅ Achievements generated: ${achievementsResult} processed.`);
+    
+    // 3. Auto-generate the monthly digest
+    const digestService = require('./services/digestService');
+    const digestResult = digestService.autoGenerateMonthlyDigest();
+    if (digestResult) console.log(`✅ Monthly digest generated for ${digestResult.month_year}.`);
+    
+    // 4. Trigger ranking update emails
+    const emailService = require('./services/emailService');
+    const emailResult = await emailService.triggerRankingEmails();
+    console.log(`✅ Ranking emails queued/sent.`);
+
+  } catch (e) {
+    console.error('❌ Monthly tasks failed:', e.message);
+  }
+}, {
+  timezone: 'Asia/Kolkata',
+});
+
+// ============================================
+// Start server
+// ============================================
+app.listen(PORT, () => {
+  console.log(`🚀 BBI Server running on port ${PORT}`);
+  console.log(`   Environment: ${IS_PROD ? 'production' : 'development'}`);
+  console.log(`   Monthly cron: Active (1st of every month, 2:00 AM IST)`);
+});

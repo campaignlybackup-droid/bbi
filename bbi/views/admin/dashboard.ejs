@@ -1,0 +1,50 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%= flash.success %></div><% } %>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-num"><%= stats.businesses %></div><div class="stat-label">Total Businesses</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.verified %></div><div class="stat-label">Verified</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.rankings %></div><div class="stat-label">Ranking Records</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.cities %></div><div class="stat-label">Active Cities</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.categories %></div><div class="stat-label">Categories</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.sponsored %></div><div class="stat-label">Sponsored</div></div>
+</div>
+
+<!-- Quick stats row -->
+<div class="stat-grid" style="grid-template-columns:repeat(2,1fr)">
+  <div class="stat-card" style="border-left:3px solid var(--gold)">
+    <div class="stat-num"><%= inquiryStats.pending %></div>
+    <div class="stat-label">Pending Inquiries</div>
+    <a href="/admin/inquiries?status=pending" style="font-size:var(--font-size-xs);color:var(--navy);font-weight:600;margin-top:var(--space-2);display:block">Review →</a>
+  </div>
+  <div class="stat-card" style="border-left:3px solid var(--navy)">
+    <div class="stat-num"><%= claimStats.pending %></div>
+    <div class="stat-label">Pending Claims</div>
+    <a href="/admin/claims?status=pending" style="font-size:var(--font-size-xs);color:var(--navy);font-weight:600;margin-top:var(--space-2);display:block">Review →</a>
+  </div>
+</div>
+
+<div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+  <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary)">Recently Added Businesses</div>
+  <a href="/admin/businesses/new" class="btn btn-primary btn-sm"><i class="ti ti-plus"></i> Add Business</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>City</th><th>Category</th><th>Added</th><th></th></tr></thead>
+    <tbody>
+      <% recent.forEach(b => { %>
+      <tr>
+        <td><strong><%= b.name %></strong></td>
+        <td><%= b.city %></td>
+        <td><%= b.category %></td>
+        <td style="color:var(--text-secondary);font-size:var(--font-size-xs)"><%= b.created_at.slice(0,10) %></td>
+        <td><a href="/admin/businesses" class="btn btn-outline btn-sm">View</a></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>
