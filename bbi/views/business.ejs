@@ -1,0 +1,208 @@
+<%- include('partials/header') %>
+
+<script type="application/ld+json"><%- JSON.stringify(localBusinessSchema) %></script>
+<script type="application/ld+json"><%- JSON.stringify(breadcrumbSchema) %></script>
+<% if(typeof faqSchema !== 'undefined' && faqSchema) { %><script type="application/ld+json"><%- JSON.stringify(faqSchema) %></script><% } %>
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <a href="/rankings/<%= business.city_slug || business.city_name.toLowerCase().replace(/ /g,'-') %>/<%= business.cat_slug %>"><%= business.cat_name %></a> <span>/</span>
+    <%= business.name %>
+  </div>
+  <h1><%= business.name %></h1>
+  <p>
+    <%= business.cat_name %> · <%= business.city_name %>
+    <% if(business.verified) { %> · <span class="tag-verified" style="vertical-align:middle">BBI Verified</span><% } %>
+    <% if(business.claimed) { %> · <span class="tag-claimed" style="vertical-align:middle">Claimed</span><% } %>
+  </p>
+</div>
+
+<div class="section">
+
+  <% if(latest) { %>
+  <div class="ai-statement">
+    <strong style="color:var(--text-primary)"><%= business.name %></strong> is currently ranked
+    <strong style="color:var(--navy)">#<%= latest.rank_position %></strong> among <%= business.cat_name %> in <%= business.city_name %>
+    according to Bharat Business Index's <%= latest.ranking_date.slice(0,7) %> rankings.
+    This ranking is based on review ratings, customer feedback, online reputation, business completeness, and editorial assessment.
+    <% if(movement) { %>
+    <span class="move move-<%= movement.direction %>" style="margin-left:4px"><%= movement.label %></span>
+    <% } %>
+    <% if(badge) { %>
+    <span class="badge badge-gold" style="margin-left:4px"><%= badge %></span>
+    <% } %>
+  </div>
+  <% } %>
+
+  <div class="profile-grid">
+
+    <div>
+      <!-- Score breakdown (M-03: real values) -->
+      <% if(scores) { %>
+      <div class="profile-card">
+        <div class="profile-card-title">
+          Ranking Score: <strong><%= Math.round(scores.final_score) %></strong> / 100
+        </div>
+        <% const factors = [
+          ['Customer Reviews', scores.review_score || 0, 35],
+          ['Review Volume', scores.volume_score || 0, 25],
+          ['Website & Online', scores.website_score || 0, 15],
+          ['Verification', scores.verified_score || 0, 10],
+          ['Profile Completeness', scores.completeness_score || 0, 10],
+          ['Editorial Score', scores.editorial_score || 0, 15]
+        ]; %>
+        <% factors.forEach(([label, val, max]) => { %>
+        <div class="score-row">
+          <div class="score-row-label"><%= label %></div>
+          <div class="score-row-bar"><div class="score-row-bar-fill" style="width:<%= max > 0 ? (val/max*100) : 0 %>%"></div></div>
+          <div class="score-row-value"><%= Math.round(val) %> / <%= max %></div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <!-- Why ranked -->
+      <% if(reasons.length) { %>
+      <div class="profile-card">
+        <div class="profile-card-title">Why we ranked <%= business.name %> #<%= latest ? latest.rank_position : '' %></div>
+        <% reasons.forEach(r => { %>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:var(--font-size-sm);color:var(--text-secondary)">
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>
+          <%= r %>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <!-- FAQ -->
+      <% if(typeof faqs !== 'undefined' && faqs.length) { %>
+      <div class="profile-card">
+        <div class="profile-card-title">FAQ</div>
+        <% faqs.forEach(faq => { %>
+        <div class="faq-item">
+          <div class="faq-question"><%= faq.question %></div>
+          <div class="faq-answer"><%= faq.answer %></div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+
+    <div>
+      <!-- Business info -->
+      <div class="profile-card">
+        <div class="profile-card-title">Business Details</div>
+        <% if(business.address) { %>
+        <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:10px;display:flex;gap:8px">
+          <i class="ti ti-map-pin" style="color:var(--navy);flex-shrink:0;font-size:16px"></i><%= business.address %>
+        </div>
+        <% } %>
+        <% if(business.phone) { %>
+        <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:10px;display:flex;gap:8px">
+          <i class="ti ti-phone" style="color:var(--navy);flex-shrink:0;font-size:16px"></i><%= business.phone %>
+        </div>
+        <% } %>
+        <% if(business.website) { %>
+        <div style="font-size:var(--font-size-sm);margin-bottom:10px;display:flex;gap:8px">
+          <i class="ti ti-world" style="color:var(--navy);flex-shrink:0;font-size:16px"></i>
+          <a href="<%= business.website %>" target="_blank" rel="noopener" style="color:var(--navy)"><%= business.website %></a>
+        </div>
+        <% } %>
+        <% if(business.google_rating) { %>
+        <div style="font-size:var(--font-size-sm);color:var(--text-secondary);display:flex;gap:8px;margin-bottom:10px">
+          <i class="ti ti-star-filled" style="color:var(--gold);flex-shrink:0;font-size:16px"></i>
+          <%= business.google_rating %> · <%= business.google_review_count %> reviews
+        </div>
+        <% } %>
+        <% if(business.description) { %>
+        <div style="font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7;margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--border-light)">
+          <%= business.description %>
+        </div>
+        <% } %>
+
+        <% if(typeof customAttributes !== 'undefined' && customAttributes.length) { %>
+        <div style="margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--border-light)">
+          <div style="font-size:var(--font-size-xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:var(--space-2)">Details</div>
+          <div class="custom-attrs">
+            <% customAttributes.forEach(attr => { %>
+            <div class="custom-attr">
+              <span class="custom-attr-key"><%= attr.key %>:</span>
+              <span class="custom-attr-value"><%= attr.value %></span>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Actions -->
+      <div class="profile-card">
+        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <a href="/business/<%= business.slug %>/claim" class="btn btn-outline btn-block">
+            <i class="ti ti-shield-check"></i> Claim This Business
+          </a>
+          <a href="/api/badge/<%= business.id %>" target="_blank" class="btn btn-outline btn-block">
+            <i class="ti ti-award"></i> Download Badge
+          </a>
+          <a href="/api/certificate/<%= business.id %>" target="_blank" class="btn btn-outline btn-block">
+            <i class="ti ti-certificate"></i> Ranking Certificate
+          </a>
+        </div>
+      </div>
+
+      <!-- Ranking history -->
+      <% if(history.length) { %>
+      <div class="profile-card">
+        <div class="profile-card-title">Ranking History</div>
+        <% history.forEach((h, i) => { %>
+        <div class="timeline-item">
+          <div class="timeline-rank <%= i === history.length - 1 ? 'timeline-rank-current' : 'timeline-rank-past' %>">#<%= h.rank_position %></div>
+          <div>
+            <div style="font-size:var(--font-size-xs);font-weight:700;color:var(--text-primary)"><%= h.ranking_date.slice(0,7) %></div>
+            <div style="font-size:var(--font-size-xs);color:var(--text-secondary)">Score <%= Math.round(h.final_score) %></div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <!-- Achievements -->
+      <% if(achievements.length) { %>
+      <div class="profile-card">
+        <div class="profile-card-title">Achievements</div>
+        <% achievements.forEach(a => { %>
+        <div style="padding:6px 0;border-bottom:1px solid var(--border-light);font-size:var(--font-size-sm)">
+          <span style="color:var(--gold);font-weight:700"><%= a.achieved_at %></span>
+          <span style="color:var(--text-secondary);margin-left:8px"><%= a.title %></span>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Related businesses -->
+  <% if(typeof relatedBusinesses !== 'undefined' && relatedBusinesses.length) { %>
+  <div style="margin-top:var(--space-6)">
+    <div class="section-label">Also in this category</div>
+    <div class="section-title" style="margin-bottom:var(--space-4)">Other <%= business.cat_name %> in <%= business.city_name %></div>
+    <div class="related-grid">
+      <% relatedBusinesses.forEach(rb => { %>
+      <a href="/business/<%= rb.slug %>" class="rcard">
+        <div class="biz-name"><%= rb.name %></div>
+        <% if(rb.current_rank) { %><div class="biz-loc">Ranked #<%= rb.current_rank %></div><% } %>
+        <% if(rb.google_rating) { %>
+        <div style="font-size:var(--font-size-xs);color:var(--text-secondary);margin-top:var(--space-2)">
+          <i class="ti ti-star-filled" style="color:var(--gold)"></i> <%= rb.google_rating %> · <%= rb.google_review_count %> reviews
+        </div>
+        <% } %>
+      </a>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('partials/footer') %>
