@@ -1,0 +1,61 @@
+<%- include('layout-top') %>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-num"><%= dashboardStats.viewsToday %></div><div class="stat-label">Page Views Today</div></div>
+  <div class="stat-card"><div class="stat-num"><%= dashboardStats.viewsWeek %></div><div class="stat-label">Views This Week</div></div>
+  <div class="stat-card"><div class="stat-num"><%= dashboardStats.searchesToday %></div><div class="stat-label">Searches Today</div></div>
+</div>
+
+<!-- Top searches -->
+<% if(searchInsights.topQueries.length) { %>
+<div class="form-card">
+  <h3>Top Search Queries (Last 30 Days)</h3>
+  <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:var(--space-3)">Total searches: <strong><%= searchInsights.totalSearches %></strong></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Query</th><th>Count</th></tr></thead>
+      <tbody>
+        <% searchInsights.topQueries.forEach(q => { %>
+        <tr><td><%= q.query %></td><td style="font-weight:700"><%= q.count %></td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>
+
+<!-- Zero result searches -->
+<% if(searchInsights.zeroResults.length) { %>
+<div class="form-card">
+  <h3>Searches With No Results</h3>
+  <div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-bottom:var(--space-3)">These searches found nothing — consider adding businesses for these terms.</div>
+  <div style="display:flex;flex-wrap:wrap;gap:var(--space-2)">
+    <% searchInsights.zeroResults.forEach(q => { %>
+    <span class="badge badge-navy"><%= q.query %> (<%= q.count %>)</span>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<!-- Category analytics -->
+<% if(categoryAnalytics.length) { %>
+<div class="form-card">
+  <h3>Category Overview</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Category</th><th>Businesses</th><th>Views</th></tr></thead>
+      <tbody>
+        <% categoryAnalytics.forEach(c => { %>
+        <tr>
+          <td><strong><%= c.name %></strong></td>
+          <td><%= c.biz_count %></td>
+          <td><%= c.total_views %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>
+
+<%- include('layout-bottom') %>

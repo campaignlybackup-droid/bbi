@@ -1,0 +1,57 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%= flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%= flash.error %></div><% } %>
+
+<!-- Status filter -->
+<div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-4);flex-wrap:wrap">
+  <a href="/admin/inquiries" class="btn btn-sm <%= !currentStatus ? 'btn-primary' : 'btn-outline' %>">All (<%= stats.pending + stats.approved + stats.rejected %>)</a>
+  <a href="/admin/inquiries?status=pending" class="btn btn-sm <%= currentStatus === 'pending' ? 'btn-accent' : 'btn-outline' %>">Pending (<%= stats.pending %>)</a>
+  <a href="/admin/inquiries?status=approved" class="btn btn-sm <%= currentStatus === 'approved' ? 'btn-primary' : 'btn-outline' %>">Approved (<%= stats.approved %>)</a>
+  <a href="/admin/inquiries?status=rejected" class="btn btn-sm <%= currentStatus === 'rejected' ? 'btn-primary' : 'btn-outline' %>">Rejected (<%= stats.rejected %>)</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Business</th><th>Contact</th><th>City</th><th>Category</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <% inquiries.forEach(inq => { %>
+      <tr>
+        <td><strong><%= inq.business_name %></strong></td>
+        <td>
+          <div style="font-size:var(--font-size-xs)"><%= inq.contact_name %></div>
+          <div style="font-size:var(--font-size-xs);color:var(--text-muted)"><%= inq.contact_email %></div>
+          <div style="font-size:var(--font-size-xs);color:var(--text-muted)"><%= inq.contact_phone %></div>
+        </td>
+        <td style="font-size:var(--font-size-sm)"><%= inq.city_name || '—' %></td>
+        <td style="font-size:var(--font-size-sm)"><%= inq.cat_name || '—' %></td>
+        <td>
+          <span class="badge <%= inq.status === 'pending' ? 'badge-gold' : inq.status === 'approved' ? 'badge-green' : 'badge-navy' %>"><%= inq.status %></span>
+        </td>
+        <td style="font-size:var(--font-size-xs);color:var(--text-muted)"><%= inq.created_at.slice(0,10) %></td>
+        <td>
+          <% if(inq.status === 'pending') { %>
+          <div style="display:flex;gap:var(--space-1)">
+            <form method="POST" action="/admin/inquiries/<%= inq.id %>/approve">
+              <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Approve and create business?')"><i class="ti ti-check"></i></button>
+            </form>
+            <form method="POST" action="/admin/inquiries/<%= inq.id %>/reject">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this inquiry?')"><i class="ti ti-x"></i></button>
+            </form>
+          </div>
+          <% } else { %>
+          <span style="font-size:var(--font-size-xs);color:var(--text-muted)"><%= inq.reviewer_name || '—' %></span>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+      <% if(!inquiries.length) { %>
+      <tr><td colspan="7" class="text-center" style="padding:var(--space-8);color:var(--text-muted)">No inquiries found.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

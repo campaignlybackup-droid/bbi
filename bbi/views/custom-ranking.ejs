@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+
+<script type="application/ld+json"><%- JSON.stringify(breadcrumbSchema) %></script>
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <%= page.title %>
+  </div>
+  <h1><%= page.title %></h1>
+  <p><%= page.description %></p>
+</div>
+
+<div class="section">
+
+  <!-- Rankings list as cards on mobile -->
+  <div class="rank-grid" style="grid-template-columns:1fr">
+    <% rankings.forEach(b => { %>
+    <a href="/business/<%= b.slug %>" class="rcard">
+      <div class="rcard-top">
+        <div class="rank-num">#<%= b.rank_position %></div>
+      </div>
+      <div class="biz-name">
+        <%= b.name %>
+        <% if(b.sponsored) { %><span class="tag-sponsored" style="margin-left:6px">Sponsored</span><% } %>
+        <% if(b.verified) { %><span class="tag-verified" style="margin-left:4px">Verified</span><% } %>
+      </div>
+      <div class="biz-loc"><%= b.address || b.city_name %></div>
+      <% if(b.google_rating) { %>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">
+        <i class="ti ti-star-filled" style="color:var(--gold);font-size:14px"></i> <%= b.google_rating %> · <%= b.google_review_count %> reviews
+      </div>
+      <% } %>
+      <div style="font-size:12px;color:var(--text-secondary)">
+        Category: <%= b.cat_name %>
+      </div>
+    </a>
+    <% }) %>
+  </div>
+
+  <% if(!rankings.length) { %>
+  <div class="profile-card text-center" style="padding:var(--space-10)">
+    <i class="ti ti-mood-empty" style="font-size:36px;color:var(--text-muted)"></i>
+    <div style="font-size:var(--font-size-base);font-weight:600;color:var(--text-primary);margin-top:var(--space-3)">No businesses added yet</div>
+    <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-top:var(--space-1)">Check back later for updates to this ranking.</div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('partials/footer') %>
