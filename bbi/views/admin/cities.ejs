@@ -1,0 +1,44 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+  <div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>City</th><th>State</th><th>Businesses</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <% cities.forEach(c => { %>
+          <tr>
+            <td><strong><%= c.name %></strong></td>
+            <td style="font-size:13px;color:#4A5568"><%= c.state %></td>
+            <td style="font-size:13px"><%= c.biz_count %></td>
+            <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;<%= c.active ? 'background:#f0fdf4;color:#166534' : 'background:#f5f5f5;color:#666' %>"><%= c.active ? 'Active' : 'Inactive' %></span></td>
+            <td style="display:flex;gap:4px">
+              <form method="POST" action="/admin/cities/<%= c.id %>/toggle">
+                <button type="submit" class="btn btn-outline btn-sm"><%= c.active ? 'Disable' : 'Enable' %></button>
+              </form>
+              <form method="POST" action="/admin/cities/<%= c.id %>/delete" onsubmit="return confirm('WARNING: This will permanently delete this city and ALL businesses inside it! Are you sure?');">
+                <button type="submit" class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"><i class="ti ti-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <h3>Add City</h3>
+    <form method="POST" action="/admin/cities">
+      <div class="form-group"><label>City Name</label><input type="text" name="name" required></div>
+      <div class="form-group"><label>State</label><input type="text" name="state" required></div>
+      <button type="submit" class="btn btn-primary">Add City</button>
+    </form>
+  </div>
+
+</div>
+
+<%- include('layout-bottom') %>
