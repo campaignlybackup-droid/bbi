@@ -1,0 +1,52 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px">
+  <div class="form-card" style="padding:0;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:#fafbfc">
+      <h3 style="margin:0;font-size:16px"><i class="ti ti-calendar-event" style="color:var(--navy);margin-right:8px"></i> Generated Digests</h3>
+    </div>
+    <table class="table-responsive" style="width:100%">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Entries</th>
+          <th style="width:120px;text-align:right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(!months || months.length === 0) { %>
+          <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted)">No digests generated yet.</td></tr>
+        <% } %>
+        <% months.forEach(m => { %>
+        <tr>
+          <td><strong><%= formatMonth(m.month) %></strong> <span style="color:var(--text-muted);font-size:11px"><%= m.month %></span></td>
+          <td><span class="badge badge-navy"><%= m.entry_count %> items</span></td>
+          <td style="text-align:right">
+            <a href="/admin/digests/<%= m.month %>" class="btn btn-sm btn-outline"><i class="ti ti-edit"></i> Manage</a>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    <div class="ai-panel" style="margin-bottom:var(--space-4)">
+      <h3><i class="ti ti-wand"></i> AI Auto-Digest</h3>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Select a month to automatically scan the database for biggest ranking movers, new cities, and new entrants. AI will write the newsletter summary.</p>
+      
+      <form action="/admin/digests/generate" method="POST">
+        <div class="form-group">
+          <input type="month" name="month" class="form-control" required style="width:100%;padding:10px;margin-bottom:12px">
+        </div>
+        <button type="submit" class="ai-btn">
+          <i class="ti ti-calendar-plus"></i> Generate Digest
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('layout-bottom') %>
