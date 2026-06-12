@@ -1,0 +1,107 @@
+<%- include('layout-top') %>
+
+<div class="header">
+  <h2>Import from Google Places</h2>
+</div>
+
+<% if (!isConfigured) { %>
+  <div class="alert alert-error">
+    <i class="ti ti-alert-triangle"></i>
+    <strong>Google Places API Key missing!</strong> Please add <code>GOOGLE_PLACES_API_KEY</code> to your <code>.env</code> file.
+  </div>
+<% } else { %>
+  <div class="row">
+    <div class="col-6">
+      <!-- Search Form -->
+      <div class="card" style="margin-bottom:var(--space-6)">
+        <h3>Search Places</h3>
+        <form action="/admin/import/search" method="POST">
+          <div class="form-group">
+            <label>Business Name / Keywords</label>
+            <input type="text" name="query" value="<%= searchQuery %>" placeholder="e.g. ABC Restaurant" required>
+          </div>
+          <div class="form-group">
+            <label>Location (City/Area)</label>
+            <input type="text" name="location" placeholder="e.g. Mumbai">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Search Google Places</button>
+        </form>
+      </div>
+
+      <!-- Search Results -->
+      <% if (searchQuery) { %>
+        <div class="card">
+          <h3>Results for "<%= searchQuery %>"</h3>
+          <% if (searchResults.length === 0) { %>
+            <p class="text-muted">No results found.</p>
+          <% } else { %>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--space-4)">
+              <% searchResults.forEach(r => { %>
+                <li style="border:1px solid var(--border-light);border-radius:var(--radius-md);padding:var(--space-3)">
+                  <h4 style="margin:0 0 var(--space-1) 0"><%= r.name %></h4>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-bottom:var(--space-2)"><%= r.address %></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:12px;color:var(--accent-color)">★ <%= r.rating %> (<%= r.review_count %> reviews)</span>
+                    <form action="/admin/import/cache/<%= r.place_id %>" method="POST">
+                      <button class="btn btn-sm btn-outline">Fetch Details</button>
+                    </form>
+                  </div>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Cached Places Ready to Import -->
+    <div class="col-6">
+      <div class="card">
+        <h3>Ready to Import</h3>
+        <p class="text-muted text-sm">Assign a city and category to import these businesses to BBI.</p>
+        
+        <% if (cachedPlaces.length === 0) { %>
+          <div style="padding:var(--space-6);text-align:center;color:var(--text-muted);background:var(--bg-color);border-radius:var(--radius-md)">
+            No places pending import. Search and fetch details first.
+          </div>
+        <% } else { %>
+          <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+            <% cachedPlaces.forEach(p => { %>
+              <div style="border:1px solid var(--border-light);border-radius:var(--radius-md);padding:var(--space-4);background:var(--bg-color)">
+                <h4 style="margin:0 0 var(--space-1) 0"><%= p.name %></h4>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:var(--space-2)"><%= p.address %></div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:var(--space-3)">
+                  ★ <%= p.rating %> &bull; <%= p.review_count %> reviews &bull; <%= p.phone || 'No phone' %>
+                </div>
+                
+                <form action="/admin/import/<%= p.id %>/approve" method="POST" style="background:#fff;padding:var(--space-3);border-radius:var(--radius-sm);border:1px solid var(--border-light)">
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                      <label style="font-size:11px">City</label>
+                      <select name="city_id" required style="padding:6px;font-size:13px">
+                        <option value="">Select...</option>
+                        <% cities.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+                      </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                      <label style="font-size:11px">Category</label>
+                      <select name="category_id" required style="padding:6px;font-size:13px">
+                        <option value="">Select...</option>
+                        <% categories.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-sm btn-success btn-block" style="margin-top:var(--space-2)">
+                    <i class="ti ti-check"></i> Import Business
+                  </button>
+                </form>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<%- include('layout-bottom') %>
