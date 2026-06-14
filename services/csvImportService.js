@@ -79,11 +79,16 @@ function validateCSV(filePath) {
     return report;
   }
 
-  // Normalize column names (lowercase)
+  // Normalize column names (lowercase) and sanitize for formula injection
   const normalizedRecords = records.map(row => {
     const normalized = {};
     for (const [key, value] of Object.entries(row)) {
-      normalized[key.toLowerCase().trim()] = (value || '').trim();
+      let val = (value || '').trim();
+      // CSV Formula Injection Protection
+      if (/^[=+\-@]/.test(val)) {
+        val = "'" + val;
+      }
+      normalized[key.toLowerCase().trim()] = val;
     }
     return normalized;
   });
@@ -740,7 +745,12 @@ function getImportStats() {
 
 function sanitize(str) {
   if (typeof str !== 'string') return '';
-  return str.trim().replace(/<[^>]*>/g, '');
+  return str.trim()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 }
 
 module.exports = {
