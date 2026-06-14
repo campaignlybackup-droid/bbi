@@ -47,7 +47,8 @@ async function generateText(prompt, systemInstruction = defaultSystemInstruction
     throw new Error('OpenAI not initialized');
   }
 
-  const cacheKey = JSON.stringify({ prompt, systemInstruction });
+  const safePrompt = prompt.substring(0, 3000);
+  const cacheKey = JSON.stringify({ prompt: safePrompt, systemInstruction });
   if (memoryCache.has(cacheKey)) {
     console.log('[AI] Request Completed (from cache)');
     return memoryCache.get(cacheKey);
@@ -59,7 +60,7 @@ async function generateText(prompt, systemInstruction = defaultSystemInstruction
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemInstruction },
-        { role: 'user', content: prompt }
+        { role: 'user', content: safePrompt }
       ],
       response_format: { type: 'json_object' },
       temperature: 0.7,
