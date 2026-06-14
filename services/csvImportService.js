@@ -128,7 +128,7 @@ function validateCSV(filePath) {
     }
 
     // Validate phone
-    if (row.phone && !/^[\d\s\-\+\(\)]{7,20}$/.test(row.phone)) {
+    if (row.phone && !/^'?[\d\s\-\+\(\)]{7,20}$/.test(row.phone)) {
       rowErrors.push({ field: 'phone', message: `Invalid phone number: ${row.phone}` });
     }
 
