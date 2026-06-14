@@ -12,8 +12,8 @@ async function generateListingContent(business) {
   return {
     seo_title: `${name} — Top ${category} in ${city} | BBI Ranked`,
     meta_description: `${name} is a BBI-ranked ${category} provider in ${city}. Find reviews, ratings, and ranking details on Bharat Business Index.`,
-    summary: `${name} is a trusted provider of ${category} in ${city}, ranked by Bharat Business Index based on customer reviews, service quality, and business credibility.`,
-    tags: category.toLowerCase().replace(/&/g, '').split(/\s+/).filter(w => w.length > 2).join(', '),
+    summary: `${name} is a trusted provider of ${category} in ${city}, ranked by Bharat Business Index based on customer reviews, service quality, and business credibility. The business maintains a strong commitment to service quality. By focusing on customer satisfaction and transparent operations, ${name} has built a solid reputation in the local community. The business serves residential and commercial clients across ${city}, offering specialized ${category.toLowerCase()} solutions tailored to local needs. BBI evaluates businesses using a strict methodology that incorporates online presence, review counts, and profile completeness to ensure accurate rankings. The services provided by ${name} are highly regarded by local consumers, contributing to its standing on the Bharat Business Index platform.`,
+    tags: `${category}, ${city}, best ${category.toLowerCase()}, top ${category.toLowerCase()}, ${name}, ${name} reviews, ${name} ranking, BBI ranked, business directory, top rated, verified business, ${city} services, local ${category.toLowerCase()}, affordable ${category.toLowerCase()}, reliable ${category.toLowerCase()}, ${category.toLowerCase()} expert, ${category.toLowerCase()} specialist, professional ${category.toLowerCase()}, trusted ${category.toLowerCase()}`,
   };
 }
 
@@ -159,12 +159,12 @@ async function generateImportContent(business) {
   return {
     seo_title: `${name} — Top ${category} in ${city} | BBI Ranked`,
     meta_description: `${name} is a BBI-ranked ${category} provider in ${city}. View independent ratings, ranking history, and business details on Bharat Business Index.`,
-    description: `${name} is a ${category} provider based in ${city}, listed on the Bharat Business Index. The business has been evaluated using BBI's transparent scoring methodology, which considers customer reviews, online presence, profile completeness, and verification status. ${name} serves customers in ${city} and surrounding areas, offering professional ${category.toLowerCase()} services. The Bharat Business Index provides independent, monthly-updated rankings to help consumers make informed decisions. Businesses listed on BBI are assessed purely on measurable quality indicators — rankings cannot be purchased or influenced. For the most current ranking position and score details, visit the full business profile on BBI.`,
+    description: `${name} is a leading ${category} provider based in ${city}, listed on the Bharat Business Index. The business has been thoroughly evaluated using BBI's transparent scoring methodology, which considers customer reviews, online presence, profile completeness, and verification status. ${name} serves customers in ${city} and surrounding areas, offering professional ${category.toLowerCase()} services. The business maintains a strong focus on service quality and customer satisfaction, which is reflected in its local reputation. The Bharat Business Index provides independent, monthly-updated rankings to help consumers make informed decisions when selecting local services. Businesses listed on BBI are assessed purely on measurable quality indicators — rankings cannot be purchased or influenced. This ensures that only the most reliable and highly-rated providers are highlighted. For the most current ranking position, score details, and customer feedback, visit the full business profile on BBI.`,
     summary: `${name} is a ${category} provider in ${city}, ranked by Bharat Business Index based on customer reviews, service quality, and business credibility. The listing is independently maintained and updated monthly.`,
     faqs: [
       {
         question: `What is ${name}'s BBI ranking in ${city}?`,
-        answer: `${name} is ranked among the top ${category} providers in ${city} by Bharat Business Index. Rankings are calculated using BBI's transparent scoring system and updated monthly.`,
+        answer: `${name} is ranked among the top ${category} providers in ${city} by Bharat Business Index. Rankings are calculated using the BBI scoring system and updated monthly.`,
       },
       {
         question: `How does BBI evaluate ${name}?`,
@@ -173,20 +173,20 @@ async function generateImportContent(business) {
       {
         question: `Is ${name} verified by BBI?`,
         answer: business.verified
-          ? `Yes, ${name} has been independently verified by Bharat Business Index, confirming the accuracy of its listed business information.`
+          ? `Yes, ${name} has been independently verified by Bharat Business Index, confirming the accuracy of the listed business information.`
           : `${name} has not yet been verified by BBI. Verification is an optional process that confirms the accuracy of business information listed on the platform.`,
       },
       {
         question: `How can ${name}'s ranking change?`,
-        answer: `Rankings on BBI are recalculated monthly based on the latest available data. ${name}'s position may change based on updated customer reviews, online presence changes, and profile completeness improvements.`,
+        answer: `Rankings on BBI are recalculated monthly based on the latest available data. The position of ${name} may change based on updated customer reviews, online presence changes, and profile completeness improvements.`,
       },
       {
         question: `Where is ${name} located?`,
         answer: `${name} operates in ${city}, providing ${category.toLowerCase()} services to local customers. For full address and contact details, visit the business profile on Bharat Business Index.`,
       },
     ],
-    keywords: `${name}, ${category}, ${city}, BBI ranking, business reviews, ${category.toLowerCase()} ${city.toLowerCase()}, top ${category.toLowerCase()}, best ${category.toLowerCase()} ${city.toLowerCase()}`,
-    tags: category.toLowerCase().replace(/&/g, '').split(/\s+/).filter(w => w.length > 2).join(', '),
+    keywords: `${name}, ${category}, ${city}, BBI ranking, business reviews, ${category.toLowerCase()} ${city.toLowerCase()}, top ${category.toLowerCase()}, best ${category.toLowerCase()} ${city.toLowerCase()}, reliable ${category.toLowerCase()}, local ${category.toLowerCase()}`,
+    tags: `${category}, ${city}, best ${category.toLowerCase()}, top ${category.toLowerCase()}, ${name}, ${name} reviews, ${name} ranking, BBI ranked, business directory, top rated, verified business, ${city} services, local ${category.toLowerCase()}, affordable ${category.toLowerCase()}, reliable ${category.toLowerCase()}, ${category.toLowerCase()} expert, ${category.toLowerCase()} specialist, professional ${category.toLowerCase()}, trusted ${category.toLowerCase()}`,
   };
 }
 
