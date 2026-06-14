@@ -533,7 +533,11 @@ router.get('/admins', requireAuth, requireSuperAdmin, (req, res) => {
 
 router.post('/admins', requireAuth, requireSuperAdmin, (req, res) => {
   const { name, email, password, role } = req.body;
-  const hash = bcrypt.hashSync(password, 10);
+  if (!password || password.length < 12 || password.length > 128) {
+    req.flash('error', 'Password must be between 12 and 128 characters.');
+    return res.redirect('/admin/admins');
+  }
+  const hash = bcrypt.hashSync(password, 12);
   try {
     db.prepare(`INSERT INTO admins (name,email,password,role) VALUES (?,?,?,?)`).run(name, email, hash, role);
     req.flash('success', 'Admin user created.');
@@ -930,12 +934,13 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const csvUpload = multer({
   dest: uploadDir,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    const validMimes = ['text/csv', 'application/csv', 'application/vnd.ms-excel'];
+    if (validMimes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.csv')) {
       cb(null, true);
     } else {
-      cb(new Error('Only CSV files are allowed.'));
+      cb(new Error('Only CSV files are allowed. No executables or unsupported formats.'));
     }
   },
 });
