@@ -98,15 +98,15 @@ City: ${city}
 Category: ${category}
 
 Requirements:
-- Description (summary) must be 100-150 words, completely unique, factual, and strictly in the third person.
+- Description (summary) must be 300-500 words, completely unique, fully SEO-optimized, factual, and strictly in the third person.
 - Avoid keyword stuffing, but naturally include the city and category.
-- Do not use promotional language or opinions.
+- Do not use promotional language or opinions. Never use 1st/2nd person.
 - Must return EXACTLY a JSON object with this structure:
 {
   "seo_title": "string",
   "meta_description": "string",
-  "summary": "string",
-  "tags": "comma, separated, list"
+  "summary": "string (300-500 words)",
+  "tags": "string (comma-separated list of up to 50 search-term related keywords/tags)"
 }`;
 
   try {
@@ -326,7 +326,7 @@ async function generateImportContent(business) {
 
   const prompt = `You are writing content for the Bharat Business Index (BBI), India's independent business ranking platform.
 
-Generate comprehensive listing content for this business:
+Generate fully SEO-optimized, comprehensive listing content for this business:
 Name: ${name}
 City: ${city}
 Category: ${category}
@@ -338,12 +338,13 @@ STRICT RULES:
 - Use an editorial, independent platform voice — BBI is observing and reporting, not endorsing
 - Content must feel like it comes from an independent ranking platform, NOT from the business itself
 - Be factual and measured, not promotional
+- Maximize SEO potential with relevant, related terms
 
 Return EXACTLY a JSON object with this structure:
 {
-  "seo_title": "string (under 60 chars, optimized for search)",
+  "seo_title": "string (under 60 chars, fully optimized for search)",
   "meta_description": "string (under 155 chars, compelling for SERP click)",
-  "description": "string (200-300 words, detailed third-person editorial description)",
+  "description": "string (400-600 words, highly detailed, fully SEO-optimized third-person editorial description)",
   "summary": "string (2-3 sentences, concise overview for cards/previews)",
   "faqs": [
     {"question": "string", "answer": "string"},
@@ -352,8 +353,8 @@ Return EXACTLY a JSON object with this structure:
     {"question": "string", "answer": "string"},
     {"question": "string", "answer": "string"}
   ],
-  "keywords": "string (comma-separated, 8-12 relevant keywords)",
-  "tags": "string (comma-separated, 5-8 tags for internal categorization)"
+  "keywords": "string (comma-separated list of up to 50 search-term related keywords)",
+  "tags": "string (comma-separated list of up to 50 search-term related keywords/tags)"
 }`;
 
   try {
