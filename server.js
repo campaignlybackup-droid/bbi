@@ -177,4 +177,12 @@ app.listen(PORT, () => {
   console.log(`🚀 BBI Server running on port ${PORT}`);
   console.log(`   Environment: ${IS_PROD ? 'production' : 'development'}`);
   console.log(`   Monthly cron: Active (1st of every month, 2:00 AM IST)`);
+  
+  // Start AI Job Queue Worker
+  const jobQueue = require('./services/ai/jobQueue');
+  const aiProvider = require('./services/ai/openaiProvider'); // Or use stubProvider depending on config
+  console.log(`   AI Worker: Active (Processing queue every 5 seconds)`);
+  setInterval(() => {
+    jobQueue.processNext(aiProvider).catch(e => console.error('[AI Worker] Error:', e.message));
+  }, 5000);
 });
