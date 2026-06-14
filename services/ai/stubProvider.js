@@ -46,22 +46,22 @@ async function generateSeoContent(pageType, data) {
       return {
         title: `Top Businesses in ${data.city_name} — BBI Rankings`,
         meta_description: `Discover the highest-ranked businesses in ${data.city_name}. Independent rankings by Bharat Business Index based on verified reviews and quality metrics.`,
-        editorial: `${data.city_name} is home to a thriving business community. BBI's monthly rankings help consumers find the most trusted service providers across multiple categories.`,
+        editorial: `${data.city_name} has a growing business sector. The BBI monthly rankings help consumers find trusted service providers across multiple categories.`,
       };
     case 'category':
       return {
         title: `Best ${data.cat_name} in India — BBI Rankings`,
-        meta_description: `Find the top-ranked ${data.cat_name} across Indian cities. BBI's transparent rankings are based on customer reviews, quality metrics, and editorial assessment.`,
-        editorial: `Looking for the best ${data.cat_name}? Bharat Business Index ranks providers across Indian cities using our transparent, independent methodology.`,
+        meta_description: `Find the top-ranked ${data.cat_name} across Indian cities. BBI rankings are based on customer reviews, quality metrics, and editorial assessment.`,
+        editorial: `Bharat Business Index ranks ${data.cat_name} providers across Indian cities using the transparent BBI methodology.`,
       };
     case 'ranking':
       return {
         title: `Top ${data.cat_name} in ${data.city_name} — BBI Rankings ${new Date().getFullYear()}`,
         meta_description: `${new Date().getFullYear()} rankings for the best ${data.cat_name} in ${data.city_name}. Independent, transparent rankings by Bharat Business Index.`,
-        editorial: `Our ${data.city_name} ${data.cat_name} rankings are updated monthly. Businesses are scored on customer reviews, review volume, online presence, and editorial assessment.`,
+        editorial: `The ${data.city_name} ${data.cat_name} rankings are updated monthly. Businesses are scored on customer reviews, review volume, online presence, and editorial assessment.`,
       };
     default:
-      return { title: 'BBI — Bharat Business Index', meta_description: 'India\'s trusted business rankings.', editorial: '' };
+      return { title: 'BBI — Bharat Business Index', meta_description: 'India\'s independent business rankings.', editorial: '' };
   }
 }
 
@@ -95,21 +95,37 @@ async function generateSocialContent(business, rankData) {
 }
 
 async function moderateContent(text) {
-  // Simple rule-based moderation
-  const spamKeywords = ['buy now', 'click here', 'limited offer', 'act fast', 'free money', 'guaranteed'];
   const lowerText = (text || '').toLowerCase();
+  
+  // Rule checks
+  const spamKeywords = ['buy now', 'click here', 'limited offer', 'act fast', 'free money', 'guaranteed'];
+  const marketingKeywords = ['world-class', 'industry-leading', 'revolutionary', 'unmatched', 'premium quality', 'best-in-class'];
+  const firstPersonWords = ['\\bi\\b', '\\bme\\b', '\\bmy\\b', '\\bmine\\b', '\\bwe\\b', '\\bus\\b', '\\bour\\b', '\\bours\\b'];
+  const secondPersonWords = ['\\byou\\b', '\\byour\\b', '\\byours\\b'];
+  const opinionPhrases = ['we believe', 'we think', 'in our opinion', 'we recommend', 'best choice', 'perfect option'];
 
   const isSpam = spamKeywords.some(kw => lowerText.includes(kw));
+  const hasMarketing = marketingKeywords.some(kw => lowerText.includes(kw));
+  const hasOpinions = opinionPhrases.some(phrase => lowerText.includes(phrase));
+  
+  const hasFirstPerson = new RegExp(`(${firstPersonWords.join('|')})`, 'i').test(text);
+  const hasSecondPerson = new RegExp(`(${secondPersonWords.join('|')})`, 'i').test(text);
+
   const hasExcessiveCaps = text && (text.replace(/[^A-Z]/g, '').length / text.length) > 0.5;
-  const hasKeywordStuffing = text && new Set(text.toLowerCase().split(/\s+/)).size < text.split(/\s+/).length * 0.3;
+  const hasKeywordStuffing = text && new Set(lowerText.split(/\s+/)).size < text.split(/\s+/).length * 0.3;
+
+  const flags = [];
+  if (isSpam) flags.push('Potential spam detected');
+  if (hasMarketing) flags.push('Contains promotional marketing language');
+  if (hasOpinions) flags.push('Contains opinion-based statements');
+  if (hasFirstPerson) flags.push('Contains first-person language');
+  if (hasSecondPerson) flags.push('Contains second-person language');
+  if (hasExcessiveCaps) flags.push('Excessive capitalization');
+  if (hasKeywordStuffing) flags.push('Possible keyword stuffing');
 
   return {
-    isClean: !isSpam && !hasExcessiveCaps && !hasKeywordStuffing,
-    flags: [
-      ...(isSpam ? ['Potential spam detected'] : []),
-      ...(hasExcessiveCaps ? ['Excessive capitalization'] : []),
-      ...(hasKeywordStuffing ? ['Possible keyword stuffing'] : []),
-    ],
+    isClean: flags.length === 0,
+    flags: flags,
   };
 }
 
