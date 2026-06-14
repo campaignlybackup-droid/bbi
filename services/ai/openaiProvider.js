@@ -30,7 +30,18 @@ const COST_PER_1K_OUTPUT = 0.00060;
 /**
  * Reusable helper for text generation with caching, cost tracking, and fallback.
  */
-async function generateText(prompt, systemInstruction = 'You are an expert SEO copywriter and data formatter.') {
+const defaultSystemInstruction = `You are a professional business directory content generator for Bharat Business Index (BBI).
+STRICT EDITORIAL RULES:
+1. NEVER use first-person words (I, me, my, mine, we, us, our, ours).
+2. NEVER use second-person words (you, your, yours).
+3. DO NOT write opinions (e.g., "We believe", "Best choice", "Perfect option"). Write only based on available data and facts.
+4. Use simple and clear language understood by business owners, customers, and non-technical users.
+5. Keep sentences short and direct. Avoid complex words.
+6. Use only these names for the platform: "Bharat Business Index", "BBI", "BBI rankings", "The BBI methodology".
+7. DO NOT use marketing language (e.g., "World-class", "Industry-leading", "Revolutionary", "Unmatched", "Premium").
+8. Content must sound like an independent business directory, research report, or ranking platform, NOT an advertisement.`;
+
+async function generateText(prompt, systemInstruction = defaultSystemInstruction) {
   if (!openai) {
     console.warn('[AI] Request Started - OpenAI not initialized. Fallback Activated.');
     throw new Error('OpenAI not initialized');
@@ -87,7 +98,9 @@ City: ${city}
 Category: ${category}
 
 Requirements:
-- Description (summary) must be 100-150 words, completely unique, avoiding keyword stuffing but naturally including the city and category.
+- Description (summary) must be 100-150 words, completely unique, factual, and strictly in the third person.
+- Avoid keyword stuffing, but naturally include the city and category.
+- Do not use promotional language or opinions.
 - Must return EXACTLY a JSON object with this structure:
 {
   "seo_title": "string",
@@ -114,7 +127,10 @@ City: ${city}
 Category: ${category}
 Verified: ${business.verified ? 'Yes' : 'No'}
 
-Return EXACTLY a JSON object containing an array under the key "faqs":
+Requirements:
+- Keep answers factual, direct, and written in simple English.
+- Do not use "we", "our", "you", or "your".
+- Return EXACTLY a JSON object containing an array under the key "faqs":
 {
   "faqs": [
     { "question": "string", "answer": "string" }
@@ -133,11 +149,14 @@ async function generateSeoContent(pageType, data) {
   const prompt = `Generate SEO content for a ${pageType} page.
 Context data: ${JSON.stringify(data)}
 
-Return EXACTLY a JSON object with this structure:
+Requirements:
+- Ensure the editorial summary is factual, objective, and simple.
+- Refer to the platform as "Bharat Business Index" or "BBI". Do not use "our".
+- Return EXACTLY a JSON object with this structure:
 {
   "title": "string (optimized title tag)",
   "meta_description": "string (compelling meta description)",
-  "editorial": "string (a professional editorial summary about this category or city ranking)"
+  "editorial": "string (a professional, objective summary about this category or city ranking)"
 }`;
 
   try {
@@ -181,11 +200,14 @@ Rank: #${rank}
 Category: ${category}
 City: ${city}
 
-Return EXACTLY a JSON object with this structure:
+Requirements:
+- Keep the tone factual, professional, and celebratory but not overly promotional.
+- Do not use 1st/2nd person pronouns.
+- Return EXACTLY a JSON object with this structure:
 {
   "linkedin": "string (professional post with emojis and hashtags)",
   "instagram": "string (engaging post with emojis and hashtags)",
-  "newsletter": "string (short blurb for an email newsletter)"
+  "newsletter": "string (short, objective blurb for an email newsletter)"
 }`;
 
   try {
@@ -219,14 +241,31 @@ async function moderateContent(text) {
       }
     }
 
-    // Additional BBI specific checks (keyword stuffing, excessive caps)
+    // Additional BBI specific checks (keyword stuffing, excessive caps, restricted language)
     const lowerText = text.toLowerCase();
-    const spamKeywords = ['buy now', 'click here', 'limited offer', 'free money', 'guaranteed'];
+    
+    // Rule checks
+    const spamKeywords = ['buy now', 'click here', 'limited offer', 'act fast', 'free money', 'guaranteed'];
+    const marketingKeywords = ['world-class', 'industry-leading', 'revolutionary', 'unmatched', 'premium quality', 'best-in-class'];
+    const firstPersonWords = ['\\bi\\b', '\\bme\\b', '\\bmy\\b', '\\bmine\\b', '\\bwe\\b', '\\bus\\b', '\\bour\\b', '\\bours\\b'];
+    const secondPersonWords = ['\\byou\\b', '\\byour\\b', '\\byours\\b'];
+    const opinionPhrases = ['we believe', 'we think', 'in our opinion', 'we recommend', 'best choice', 'perfect option'];
+
     const isSpam = spamKeywords.some(kw => lowerText.includes(kw));
+    const hasMarketing = marketingKeywords.some(kw => lowerText.includes(kw));
+    const hasOpinions = opinionPhrases.some(phrase => lowerText.includes(phrase));
+    
+    const hasFirstPerson = new RegExp(`(${firstPersonWords.join('|')})`, 'i').test(text);
+    const hasSecondPerson = new RegExp(`(${secondPersonWords.join('|')})`, 'i').test(text);
+
     if (isSpam) flags.push('Potential spam detected');
+    if (hasMarketing) flags.push('Contains promotional marketing language');
+    if (hasOpinions) flags.push('Contains opinion-based statements');
+    if (hasFirstPerson) flags.push('Contains first-person language');
+    if (hasSecondPerson) flags.push('Contains second-person language');
 
     return {
-      isClean: !result.flagged && !isSpam,
+      isClean: !result.flagged && flags.length === 0,
       flags: flags
     };
   } catch (error) {
@@ -249,22 +288,22 @@ async function suggestRelated(businessId, db) {
 // ============================================
 
 async function generateSeoTags(name, type) {
-  const prompt = `Generate highly optimized SEO tags for a ${type} landing page named "${name}". Return EXACTLY a JSON object: {"title": "string (under 60 chars)", "meta_description": "string (under 155 chars)"}`;
+  const prompt = `Generate highly optimized SEO tags for a ${type} landing page named "${name}". Keep it factual and objective. Return EXACTLY a JSON object: {"title": "string (under 60 chars)", "meta_description": "string (under 155 chars)"}`;
   return await generateText(prompt);
 }
 
 async function generateSeoEditorial(name, type) {
-  const prompt = `Write an engaging, SEO-optimized 100-word introduction paragraph for a directory page about "${name}" (${type}). Make it professional, persuasive, and authoritative. Return EXACTLY a JSON object: {"content": "string (HTML format)"}`;
+  const prompt = `Write an engaging, SEO-optimized 100-word introduction paragraph for a directory page about "${name}" (${type}). Make it professional, factual, and objective. Do not use opinions or marketing fluff. Return EXACTLY a JSON object: {"content": "string (HTML format)"}`;
   return await generateText(prompt);
 }
 
 async function generateBlogDraft(title) {
-  const prompt = `Write a complete, structured 400-word blog post about "${title}". Use HTML headings (<h2>, <h3>), paragraphs, and bullet points if appropriate. Make it professional and highly readable. Return EXACTLY a JSON object: {"content": "string (HTML format)"}`;
+  const prompt = `Write a complete, structured 400-word blog post about "${title}". Use HTML headings (<h2>, <h3>), paragraphs, and bullet points if appropriate. Write in simple English, keeping sentences short. Maintain a third-person, factual tone. Return EXACTLY a JSON object: {"content": "string (HTML format)"}`;
   return await generateText(prompt);
 }
 
 async function generateBlogSummary(content) {
-  const prompt = `Read this blog post content and generate a short excerpt and a meta description. 
+  const prompt = `Read this blog post content and generate a short excerpt and a meta description. Ensure the output is completely objective.
 Content: ${content.substring(0, 2000)}...
 
 Return EXACTLY a JSON object: {"excerpt": "string (2-3 sentences)", "meta_description": "string (under 155 chars)"}`;
@@ -272,7 +311,7 @@ Return EXACTLY a JSON object: {"excerpt": "string (2-3 sentences)", "meta_descri
 }
 
 async function generateDigestSummary(month) {
-  const prompt = `Write a highly engaging, 3-paragraph email newsletter summary for the Bharat Business Index (BBI) Monthly Digest for ${month}. Highlight that there are new movers, entrants, and cities added to our rankings. Write in a celebratory, professional tone. Return EXACTLY a JSON object: {"content": "string (plain text)"}`;
+  const prompt = `Write a 3-paragraph email newsletter summary for the Bharat Business Index (BBI) Monthly Digest for ${month}. Highlight new movers, entrants, and cities. Write in a professional, third-person, and objective tone. Do not use "our rankings". Use "BBI rankings". Return EXACTLY a JSON object: {"content": "string (plain text)"}`;
   return await generateText(prompt);
 }
 
