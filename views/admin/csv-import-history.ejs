@@ -1,0 +1,87 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%- flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%- flash.error %></div><% } %>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+  <div></div>
+  <a href="/admin/csv-import" class="btn btn-primary btn-sm"><i class="ti ti-plus"></i> New Import</a>
+</div>
+
+<% if(history.imports.length === 0) { %>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-8);text-align:center">
+  <i class="ti ti-file-import" style="font-size:48px;color:var(--text-tertiary);display:block;margin-bottom:var(--space-2)"></i>
+  <h3 style="margin:0 0 var(--space-1) 0">No imports yet</h3>
+  <p style="color:var(--text-secondary);font-size:var(--font-size-sm)">Upload your first CSV to get started.</p>
+  <a href="/admin/csv-import" class="btn btn-primary" style="margin-top:var(--space-3)"><i class="ti ti-upload"></i> Upload CSV</a>
+</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>File</th><th>Status</th><th>Total</th><th>Imported</th><th>Failed</th><th>Skipped</th><th>Admin</th><th>Date</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% history.imports.forEach(imp => { %>
+      <tr>
+        <td><strong>#<%= imp.id %></strong></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= imp.filename %>"><%= imp.filename %></td>
+        <td>
+          <% if(imp.status === 'completed') { %>
+            <span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:var(--radius-full);font-size:var(--font-size-xs);font-weight:600">Completed</span>
+          <% } else if(imp.status === 'failed') { %>
+            <span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:var(--radius-full);font-size:var(--font-size-xs);font-weight:600">Failed</span>
+          <% } else if(imp.status === 'rolled_back') { %>
+            <span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:var(--radius-full);font-size:var(--font-size-xs);font-weight:600">Rolled Back</span>
+          <% } else if(imp.status === 'validated') { %>
+            <span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:var(--radius-full);font-size:var(--font-size-xs);font-weight:600">Validated</span>
+          <% } else if(imp.status === 'importing') { %>
+            <span style="background:#e0e7ff;color:#3730a3;padding:2px 8px;border-radius:var(--radius-full);font-size:var(--font-size-xs);font-weight:600">Importing...</span>
+          <% } else { %>
+            <span style="background:var(--bg-secondary);color:var(--text-secondary);padding:2px 8px;border-radius:var(--radius-full);font-size:var(--font-size-xs);font-weight:600"><%= imp.status %></span>
+          <% } %>
+        </td>
+        <td><%= imp.total_rows %></td>
+        <td style="color:#16a34a;font-weight:600"><%= imp.imported_rows %></td>
+        <td style="color:<%= imp.failed_rows > 0 ? '#ef4444' : 'var(--text-secondary)' %>"><%= imp.failed_rows %></td>
+        <td><%= imp.skipped_rows %></td>
+        <td style="font-size:var(--font-size-xs)"><%= imp.admin_name || '—' %></td>
+        <td style="font-size:var(--font-size-xs);color:var(--text-secondary)"><%= imp.created_at ? imp.created_at.slice(0,16).replace('T',' ') : '—' %></td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <% if(['importing', 'generating_content'].includes(imp.status)) { %>
+              <a href="/admin/csv-import/<%= imp.id %>/status" class="btn btn-outline btn-sm">Status</a>
+            <% } else if(imp.status === 'validated') { %>
+              <a href="/admin/csv-import/<%= imp.id %>/preview" class="btn btn-outline btn-sm">Preview</a>
+            <% } else { %>
+              <a href="/admin/csv-import/<%= imp.id %>" class="btn btn-outline btn-sm">Details</a>
+            <% } %>
+            <% if(imp.status === 'completed') { %>
+              <form action="/admin/csv-import/<%= imp.id %>/rollback" method="POST" style="display:inline" onsubmit="return confirm('Rollback import #<%= imp.id %>? This deactivates all businesses from this import.')">
+                <button type="submit" class="btn btn-outline btn-sm" style="color:#ef4444;border-color:#fecaca">Rollback</button>
+              </form>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+<% if(history.totalPages > 1) { %>
+<div style="display:flex;justify-content:center;gap:var(--space-2);margin-top:var(--space-4)">
+  <% for(let p = 1; p <= history.totalPages; p++) { %>
+    <a href="/admin/csv-import/history?page=<%= p %>" 
+       class="btn btn-sm <%= p === history.page ? 'btn-primary' : 'btn-outline' %>">
+      <%= p %>
+    </a>
+  <% } %>
+</div>
+<% } %>
+<% } %>
+
+<%- include('layout-bottom') %>

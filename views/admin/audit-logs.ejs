@@ -1,0 +1,132 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%- flash.success %></div><% } %>
+
+<!-- Filters -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4)">
+  <form method="GET" action="/admin/audit-logs" style="display:flex;gap:var(--space-3);align-items:end;flex-wrap:wrap">
+    <div>
+      <label style="font-size:var(--font-size-xs);font-weight:600;display:block;margin-bottom:4px">Entity Type</label>
+      <select name="entity_type" class="form-control" style="min-width:150px">
+        <option value="">All Types</option>
+        <option value="business" <%= filters.entity_type === 'business' ? 'selected' : '' %>>Business</option>
+        <option value="import" <%= filters.entity_type === 'import' ? 'selected' : '' %>>Import</option>
+        <option value="city" <%= filters.entity_type === 'city' ? 'selected' : '' %>>City</option>
+        <option value="category" <%= filters.entity_type === 'category' ? 'selected' : '' %>>Category</option>
+        <option value="ranking" <%= filters.entity_type === 'ranking' ? 'selected' : '' %>>Ranking</option>
+        <option value="claim" <%= filters.entity_type === 'claim' ? 'selected' : '' %>>Claim</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:var(--font-size-xs);font-weight:600;display:block;margin-bottom:4px">Action</label>
+      <select name="action" class="form-control" style="min-width:150px">
+        <option value="">All Actions</option>
+        <option value="create" <%= filters.action === 'create' ? 'selected' : '' %>>Create</option>
+        <option value="update" <%= filters.action === 'update' ? 'selected' : '' %>>Update</option>
+        <option value="delete" <%= filters.action === 'delete' ? 'selected' : '' %>>Delete</option>
+        <option value="import" <%= filters.action === 'import' ? 'selected' : '' %>>Import</option>
+        <option value="rollback" <%= filters.action === 'rollback' ? 'selected' : '' %>>Rollback</option>
+        <option value="complete" <%= filters.action === 'complete' ? 'selected' : '' %>>Complete</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:var(--font-size-xs);font-weight:600;display:block;margin-bottom:4px">From Date</label>
+      <input type="date" name="from_date" class="form-control" value="<%= filters.from_date || '' %>">
+    </div>
+    <div>
+      <label style="font-size:var(--font-size-xs);font-weight:600;display:block;margin-bottom:4px">To Date</label>
+      <input type="date" name="to_date" class="form-control" value="<%= filters.to_date || '' %>">
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="ti ti-filter"></i> Filter</button>
+    <a href="/admin/audit-logs" class="btn btn-outline btn-sm">Clear</a>
+  </form>
+</div>
+
+<!-- Results Count -->
+<div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:var(--space-2)">
+  Showing <strong><%= auditData.logs.length %></strong> of <strong><%= auditData.total %></strong> audit entries
+</div>
+
+<!-- Audit Log Table -->
+<% if(auditData.logs.length === 0) { %>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-8);text-align:center">
+  <i class="ti ti-list-details" style="font-size:48px;color:var(--text-tertiary);display:block;margin-bottom:var(--space-2)"></i>
+  <h3 style="margin:0 0 var(--space-1) 0">No audit logs found</h3>
+  <p style="color:var(--text-secondary);font-size:var(--font-size-sm)">Audit logs will appear here as changes are made.</p>
+</div>
+<% } else { %>
+<div class="table-wrap">
+  <table style="font-size:var(--font-size-xs)">
+    <thead>
+      <tr><th>Time</th><th>Type</th><th>Action</th><th>Entity ID</th><th>Field</th><th>Old Value</th><th>New Value</th><th>Admin</th></tr>
+    </thead>
+    <tbody>
+      <% auditData.logs.forEach(log => { %>
+      <tr>
+        <td style="white-space:nowrap;color:var(--text-secondary)"><%= log.created_at ? log.created_at.slice(0,16).replace('T',' ') : '—' %></td>
+        <td>
+          <span style="background:var(--bg-secondary);padding:2px 6px;border-radius:var(--radius-sm);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">
+            <%= log.entity_type %>
+          </span>
+        </td>
+        <td>
+          <% if(log.action === 'create' || log.action === 'import') { %>
+            <span style="color:#16a34a;font-weight:600"><%= log.action %></span>
+          <% } else if(log.action === 'delete' || log.action === 'rollback') { %>
+            <span style="color:#ef4444;font-weight:600"><%= log.action %></span>
+          <% } else if(log.action === 'update') { %>
+            <span style="color:#2563eb;font-weight:600"><%= log.action %></span>
+          <% } else { %>
+            <span style="font-weight:600"><%= log.action %></span>
+          <% } %>
+        </td>
+        <td>
+          <% if(log.entity_id) { %>
+            <% if(log.entity_type === 'business') { %>
+              <a href="/admin/businesses/<%= log.entity_id %>/edit">#<%= log.entity_id %></a>
+            <% } else if(log.entity_type === 'import') { %>
+              <a href="/admin/csv-import/<%= log.entity_id %>">#<%= log.entity_id %></a>
+            <% } else { %>
+              #<%= log.entity_id %>
+            <% } %>
+          <% } else { %>—<% } %>
+        </td>
+        <td style="color:var(--text-secondary)"><%= log.field_name || '—' %></td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ef4444" title="<%= log.old_value || '' %>">
+          <%= log.old_value || '—' %>
+        </td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#16a34a" title="<%= log.new_value || '' %>">
+          <%= log.new_value || '—' %>
+        </td>
+        <td><%= log.admin_name || '—' %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+<% if(auditData.totalPages > 1) { %>
+<div style="display:flex;justify-content:center;gap:var(--space-2);margin-top:var(--space-4)">
+  <%
+    const qp = new URLSearchParams();
+    if(filters.entity_type) qp.set('entity_type', filters.entity_type);
+    if(filters.action) qp.set('action', filters.action);
+    if(filters.from_date) qp.set('from_date', filters.from_date);
+    if(filters.to_date) qp.set('to_date', filters.to_date);
+    const baseQ = qp.toString() ? '&' + qp.toString() : '';
+  %>
+  <% if(auditData.page > 1) { %>
+    <a href="/admin/audit-logs?page=<%= auditData.page - 1 %><%= baseQ %>" class="btn btn-sm btn-outline">← Prev</a>
+  <% } %>
+  <span style="padding:4px 12px;font-size:var(--font-size-sm);color:var(--text-secondary)">
+    Page <%= auditData.page %> of <%= auditData.totalPages %>
+  </span>
+  <% if(auditData.page < auditData.totalPages) { %>
+    <a href="/admin/audit-logs?page=<%= auditData.page + 1 %><%= baseQ %>" class="btn btn-sm btn-outline">Next →</a>
+  <% } %>
+</div>
+<% } %>
+<% } %>
+
+<%- include('layout-bottom') %>

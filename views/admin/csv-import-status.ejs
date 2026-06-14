@@ -1,0 +1,128 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%- flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%- flash.error %></div><% } %>
+
+<%
+  const s = importStatus;
+  const rs = s.rowStats || {};
+  const isRunning = ['importing', 'generating_content', 'validating'].includes(s.status);
+  const isDone = ['completed', 'failed', 'rolled_back'].includes(s.status);
+%>
+
+<!-- Status Header -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-4)">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+    <div>
+      <h3 style="margin:0"><i class="ti ti-loader"></i> Import #<%= s.id %></h3>
+      <p style="color:var(--text-secondary);font-size:var(--font-size-sm);margin:var(--space-1) 0 0 0">
+        File: <strong><%= s.filename %></strong>
+      </p>
+    </div>
+    <div>
+      <% if(s.status === 'completed') { %>
+        <span style="background:#dcfce7;color:#166534;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--font-size-sm);font-weight:600">
+          <i class="ti ti-check"></i> Completed
+        </span>
+      <% } else if(s.status === 'failed') { %>
+        <span style="background:#fee2e2;color:#991b1b;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--font-size-sm);font-weight:600">
+          <i class="ti ti-x"></i> Failed
+        </span>
+      <% } else if(s.status === 'rolled_back') { %>
+        <span style="background:#fef3c7;color:#92400e;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--font-size-sm);font-weight:600">
+          <i class="ti ti-rotate"></i> Rolled Back
+        </span>
+      <% } else { %>
+        <span style="background:#dbeafe;color:#1e40af;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--font-size-sm);font-weight:600" id="statusBadge">
+          <i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> <%= s.status %>
+        </span>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div style="margin-bottom:var(--space-4)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-1)">
+      <span style="font-size:var(--font-size-sm);font-weight:600">Progress</span>
+      <span style="font-size:var(--font-size-sm);color:var(--text-secondary)" id="progressText"><%= s.progress %>%</span>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:var(--radius-full);height:12px;overflow:hidden">
+      <div id="progressBar" style="background:linear-gradient(90deg,var(--navy),var(--gold));height:100%;border-radius:var(--radius-full);transition:width 0.5s ease;width:<%= s.progress %>%"></div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stat-grid" style="grid-template-columns:repeat(5,1fr)">
+    <div class="stat-card"><div class="stat-num" id="statTotal"><%= rs.total || s.total_rows || 0 %></div><div class="stat-label">Total Rows</div></div>
+    <div class="stat-card" style="border-left:3px solid #22c55e"><div class="stat-num" id="statImported"><%= rs.imported || s.imported_rows || 0 %></div><div class="stat-label">Imported</div></div>
+    <div class="stat-card" style="border-left:3px solid #ef4444"><div class="stat-num" id="statFailed"><%= rs.failed || s.failed_rows || 0 %></div><div class="stat-label">Failed</div></div>
+    <div class="stat-card" style="border-left:3px solid #f59e0b"><div class="stat-num" id="statSkipped"><%= rs.skipped || s.skipped_rows || 0 %></div><div class="stat-label">Skipped</div></div>
+    <div class="stat-card" style="border-left:3px solid #8b5cf6"><div class="stat-num" id="statSeo"><%= rs.seo_done || 0 %></div><div class="stat-label">SEO Generated</div></div>
+  </div>
+</div>
+
+<!-- Timestamps -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4)">
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);font-size:var(--font-size-sm)">
+    <div>
+      <span style="color:var(--text-secondary)">Created:</span><br>
+      <strong><%= s.created_at ? new Date(s.created_at).toLocaleString() : '—' %></strong>
+    </div>
+    <div>
+      <span style="color:var(--text-secondary)">Started:</span><br>
+      <strong><%= s.started_at ? new Date(s.started_at).toLocaleString() : '—' %></strong>
+    </div>
+    <div>
+      <span style="color:var(--text-secondary)">Completed:</span><br>
+      <strong id="completedAt"><%= s.completed_at ? new Date(s.completed_at).toLocaleString() : 'In progress...' %></strong>
+    </div>
+  </div>
+</div>
+
+<!-- Actions -->
+<div style="display:flex;gap:var(--space-3)">
+  <% if(isDone && s.status === 'completed') { %>
+    <a href="/admin/csv-import/<%= s.id %>" class="btn btn-outline">
+      <i class="ti ti-eye"></i> View Details
+    </a>
+    <form action="/admin/csv-import/<%= s.id %>/rollback" method="POST" onsubmit="return confirm('Are you sure? This will deactivate all businesses from this import.')">
+      <button type="submit" class="btn btn-outline" style="color:#ef4444;border-color:#ef4444">
+        <i class="ti ti-rotate"></i> Rollback Import
+      </button>
+    </form>
+  <% } %>
+  <a href="/admin/csv-import/history" class="btn btn-outline"><i class="ti ti-history"></i> Import History</a>
+  <a href="/admin/csv-import" class="btn btn-outline"><i class="ti ti-plus"></i> New Import</a>
+</div>
+
+<% if(isRunning) { %>
+<script>
+// Poll for status updates
+const importId = <%= s.id %>;
+let pollInterval = setInterval(async () => {
+  try {
+    const res = await fetch(`/admin/api/csv-import/${importId}/status`);
+    const data = await res.json();
+    
+    document.getElementById('progressBar').style.width = data.progress + '%';
+    document.getElementById('progressText').textContent = data.progress + '%';
+    document.getElementById('statImported').textContent = data.rowStats?.imported || data.imported_rows || 0;
+    document.getElementById('statFailed').textContent = data.rowStats?.failed || data.failed_rows || 0;
+    document.getElementById('statSkipped').textContent = data.rowStats?.skipped || data.skipped_rows || 0;
+    document.getElementById('statSeo').textContent = data.rowStats?.seo_done || 0;
+    
+    if(['completed', 'failed', 'rolled_back'].includes(data.status)) {
+      clearInterval(pollInterval);
+      location.reload();
+    }
+  } catch (e) {
+    console.error('Poll failed:', e);
+  }
+}, 2000);
+</script>
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+<% } %>
+
+<%- include('layout-bottom') %>

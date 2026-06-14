@@ -1,0 +1,114 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%- flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%- flash.error %></div><% } %>
+
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-num"><%= stats.total %></div><div class="stat-label">Total Imports</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.completed %></div><div class="stat-label">Completed</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.totalImported %></div><div class="stat-label">Businesses Imported</div></div>
+  <div class="stat-card"><div class="stat-num"><%= stats.failed %></div><div class="stat-label">Failed Imports</div></div>
+</div>
+
+<!-- Upload Form -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);margin-top:var(--space-4)">
+  <h3 style="margin:0 0 var(--space-2) 0;font-size:var(--font-size-lg)"><i class="ti ti-file-import"></i> Upload CSV File</h3>
+  <p style="color:var(--text-secondary);font-size:var(--font-size-sm);margin-bottom:var(--space-4)">
+    Upload a CSV file with business data. The system will validate all rows before importing.
+  </p>
+
+  <form action="/admin/csv-import/upload" method="POST" enctype="multipart/form-data" id="csvUploadForm">
+    <div style="border:2px dashed var(--border);border-radius:var(--radius-md);padding:var(--space-8);text-align:center;margin-bottom:var(--space-4);transition:all 0.2s" id="dropZone">
+      <i class="ti ti-cloud-upload" style="font-size:48px;color:var(--text-tertiary);display:block;margin-bottom:var(--space-2)"></i>
+      <p style="font-weight:600;margin-bottom:var(--space-1)">Drag & drop your CSV file here</p>
+      <p style="color:var(--text-secondary);font-size:var(--font-size-sm);margin-bottom:var(--space-3)">or click to browse (max 10MB)</p>
+      <input type="file" name="csvFile" accept=".csv" id="csvFileInput" style="display:none" required>
+      <button type="button" class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">
+        <i class="ti ti-upload"></i> Choose File
+      </button>
+      <div id="fileInfo" style="margin-top:var(--space-3);display:none">
+        <span style="font-weight:600;color:var(--navy)" id="fileName"></span>
+        <span style="color:var(--text-secondary);font-size:var(--font-size-xs)" id="fileSize"></span>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+      <i class="ti ti-upload"></i> Upload & Validate
+    </button>
+  </form>
+</div>
+
+<!-- CSV Format Guide -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);margin-top:var(--space-4)">
+  <h3 style="margin:0 0 var(--space-3) 0;font-size:var(--font-size-lg)"><i class="ti ti-info-circle"></i> CSV Format Guide</h3>
+  <p style="color:var(--text-secondary);font-size:var(--font-size-sm);margin-bottom:var(--space-3)">
+    Your CSV must include all of the following columns (in any order):
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Column</th><th>Required</th><th>Format</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>business_name</strong></td><td>✅ Yes</td><td>Text (min 2 chars)</td><td>Detailing Spiders</td></tr>
+        <tr><td><strong>category</strong></td><td>✅ Yes</td><td>Text</td><td>Car Detailing Studios</td></tr>
+        <tr><td><strong>city</strong></td><td>✅ Yes</td><td>Text</td><td>Karnal</td></tr>
+        <tr><td><strong>state</strong></td><td>✅ Yes</td><td>Text</td><td>Haryana</td></tr>
+        <tr><td><strong>address</strong></td><td>Optional</td><td>Text</td><td>GT Road, Near Bus Stand</td></tr>
+        <tr><td><strong>phone</strong></td><td>Optional</td><td>Phone number</td><td>+91-9876543210</td></tr>
+        <tr><td><strong>email</strong></td><td>Optional</td><td>Valid email</td><td>info@business.com</td></tr>
+        <tr><td><strong>website</strong></td><td>Optional</td><td>URL</td><td>https://business.com</td></tr>
+        <tr><td><strong>google_rating</strong></td><td>Optional</td><td>0-5</td><td>4.5</td></tr>
+        <tr><td><strong>review_count</strong></td><td>Optional</td><td>Positive integer</td><td>250</td></tr>
+        <tr><td><strong>year_established</strong></td><td>Optional</td><td>Year (1800-present)</td><td>2015</td></tr>
+        <tr><td><strong>services</strong></td><td>Optional</td><td>Comma-separated</td><td>PPF, Ceramic Coating</td></tr>
+        <tr><td><strong>facebook</strong></td><td>Optional</td><td>URL</td><td>https://facebook.com/biz</td></tr>
+        <tr><td><strong>instagram</strong></td><td>Optional</td><td>URL</td><td>https://instagram.com/biz</td></tr>
+        <tr><td><strong>linkedin</strong></td><td>Optional</td><td>URL</td><td>https://linkedin.com/biz</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:var(--space-3)">
+    <a href="/admin/csv-import/history" class="btn btn-outline btn-sm">
+      <i class="ti ti-history"></i> View Import History
+    </a>
+  </div>
+</div>
+
+<script>
+// Drag & drop
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('csvFileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+
+['dragenter', 'dragover'].forEach(e => {
+  dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.style.borderColor = 'var(--navy)'; dropZone.style.background = 'var(--bg-secondary)'; });
+});
+['dragleave', 'drop'].forEach(e => {
+  dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.style.borderColor = 'var(--border)'; dropZone.style.background = ''; });
+});
+dropZone.addEventListener('drop', ev => {
+  ev.preventDefault();
+  const files = ev.dataTransfer.files;
+  if (files.length && files[0].name.endsWith('.csv')) {
+    fileInput.files = files;
+    showFileInfo(files[0]);
+  }
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) showFileInfo(fileInput.files[0]);
+});
+
+function showFileInfo(file) {
+  fileName.textContent = file.name;
+  fileSize.textContent = ` (${(file.size / 1024).toFixed(1)} KB)`;
+  fileInfo.style.display = 'block';
+  uploadBtn.disabled = false;
+}
+</script>
+
+<%- include('layout-bottom') %>
