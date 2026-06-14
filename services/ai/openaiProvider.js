@@ -99,14 +99,14 @@ City: ${city}
 Category: ${category}
 
 Requirements:
-- Description (summary) must be 300-500 words, completely unique, fully SEO-optimized, factual, and strictly in the third person.
+- Description (summary) must be 100-200 words (medium length), completely unique, fully SEO-optimized, factual, and strictly in the third person.
 - Avoid keyword stuffing, but naturally include the city and category.
 - Do not use promotional language or opinions. Never use 1st/2nd person.
 - Must return EXACTLY a JSON object with this structure:
 {
   "seo_title": "string",
   "meta_description": "string",
-  "summary": "string (300-500 words)",
+  "summary": "string (100-200 words)",
   "tags": "string (comma-separated list of up to 50 search-term related keywords/tags)"
 }`;
 
@@ -124,12 +124,14 @@ async function generateFaqContent(business) {
 
   const prompt = `Generate 5 Schema-friendly, SEO-optimized FAQs for the business ranking page of:
 Name: ${name}
+Address: ${business.address || 'Unknown'}
 City: ${city}
 Category: ${category}
 Verified: ${business.verified ? 'Yes' : 'No'}
 
 Requirements:
 - Keep answers factual, direct, and written in simple English.
+- If a question asks where the business is located, you MUST include the exact address in the answer.
 - Do not use "we", "our", "you", or "your".
 - Return EXACTLY a JSON object containing an array under the key "faqs":
 {
