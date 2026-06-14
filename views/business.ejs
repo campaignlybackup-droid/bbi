@@ -95,12 +95,13 @@
         <div class="profile-card-title">Business Details</div>
         <% if(business.address) { %>
         <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:10px;display:flex;gap:8px">
-          <i class="ti ti-map-pin" style="color:var(--navy);flex-shrink:0;font-size:16px"></i><%= business.address %>
+          <i class="ti ti-map-pin" style="color:var(--navy);flex-shrink:0;font-size:16px"></i>
+          <a href="https://maps.google.com/?q=<%= encodeURIComponent(business.name + ' ' + business.address + ', ' + business.city_name) %>" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;"><%= business.address %></a>
         </div>
         <% } %>
         <% if(business.phone) { %>
         <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:10px;display:flex;gap:8px">
-          <i class="ti ti-phone" style="color:var(--navy);flex-shrink:0;font-size:16px"></i><%= business.phone %>
+          <i class="ti ti-phone" style="color:var(--navy);flex-shrink:0;font-size:16px"></i><%= business.phone.replace(/^&#x27;|^'/, '') %>
         </div>
         <% } %>
         <% if(business.website) { %>
