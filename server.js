@@ -68,12 +68,25 @@ const authLimiter = rateLimit({
   message: 'Too many login attempts. Please try again later.',
 });
 
+// Rate limiting on public forms and API
+const formLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  message: 'Too many submissions from this IP. Please try again later.',
+});
+
+const searchLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 100,
+  message: 'Too many search requests. Please slow down.',
+});
+
 // ============================================
 // Standard middleware
 // ============================================
 if (!IS_PROD) app.use(morgan('dev'));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(methodOverride('_method'));
 
 // Static files with cache headers
@@ -111,7 +124,9 @@ app.use((req, res, next) => {
 // Routes
 // ============================================
 app.use('/', require('./routes/seo'));        // sitemap.xml, robots.txt, badges
-app.use('/', require('./routes/search'));     // /search, /api/search/*
+app.use('/', searchLimiter, require('./routes/search'));     // /search, /api/search/*
+app.use('/get-listed', formLimiter);
+app.use('/business/*/claim', formLimiter);
 app.use('/blog', require('./routes/blog'));
 app.use('/digest', require('./routes/digest'));
 app.use('/', require('./routes/public'));     // homepage, rankings, business, city, category, methodology, get-listed, claim
@@ -127,11 +142,14 @@ app.use((req, res) => res.status(404).render('404', { title: 'Page Not Found' })
 // Error handler
 // ============================================
 app.use((err, req, res, next) => {
-  console.error('ERROR:', err.stack || err.message || err);
-  if (IS_PROD) {
+  // Always log the full error internally
+  console.error('ERROR [Internal]:', err.stack || err.message || err);
+  
+  // Never leak the stack trace to the user, regardless of environment
+  if (req.accepts('html')) {
     res.status(500).render('404', { title: 'Server Error' });
   } else {
-    res.status(500).send(`<h1>Server Error</h1><pre>${err.stack || err.message || err}</pre>`);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
