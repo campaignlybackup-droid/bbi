@@ -36,6 +36,7 @@
       <a href="/admin/audit-logs" class="<%= currentPath.startsWith('/admin/audit-logs')?'active':'' %>"><i class="ti ti-list-details"></i> Audit Logs</a>
       <div class="sidebar-section">System</div>
       <% if(admin.adminRole === 'superadmin') { %>
+      <a href="/admin/settings" class="<%= currentPath.startsWith('/admin/settings')?'active':'' %>"><i class="ti ti-settings"></i> Global Settings</a>
       <a href="/admin/admins" class="<%= currentPath.startsWith('/admin/admins')?'active':'' %>"><i class="ti ti-users"></i> Admin Users</a>
       <% } %>
       <a href="/" target="_blank"><i class="ti ti-external-link"></i> View Site</a>

@@ -34,6 +34,14 @@ try { db.exec('ALTER TABLE businesses ADD COLUMN linkedin_url TEXT'); } catch (e
 try { db.exec('ALTER TABLE businesses ADD COLUMN import_id INTEGER'); } catch (e) {}
 try { db.exec('ALTER TABLE businesses ADD COLUMN bbi_score REAL DEFAULT 0'); } catch (e) {}
 
+// Create global site settings table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
 /**
  * Run multiple statements in a transaction.

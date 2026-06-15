@@ -20,6 +20,7 @@ const placesService = require('../services/placesService');
 const seoService = require('../services/seoService');
 const digestService = require('../services/digestService');
 const customRankingService = require('../services/customRankingService');
+const settingsService = require('../services/settingsService');
 const jobQueue = require('../services/ai/jobQueue');
 const aiProvider = require('../services/ai/index').getProvider();
 
@@ -521,6 +522,45 @@ router.get('/analytics', requireAuth, (req, res) => {
     title: 'Analytics', admin: req.session,
     flash: { success: req.flash('success') }
   });
+});
+
+// ============================================
+// SETTINGS & SEO PERFORMANCE
+// ============================================
+router.get('/settings', requireAuth, requireSuperAdmin, async (req, res) => {
+  const settings = settingsService.getAllSettings();
+  
+  // Optional: Fetch live PageSpeed Insights if requested
+  let pageSpeedData = null;
+  if (req.query.run_pagespeed === 'true') {
+    try {
+      const targetUrl = process.env.BASE_URL || 'https://bharatbusinessindex.com';
+      const response = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&category=SEO&category=PERFORMANCE`);
+      if (response.ok) {
+        pageSpeedData = await response.json();
+      }
+    } catch (e) {
+      console.error('PageSpeed API Error:', e.message);
+    }
+  }
+
+  res.render('admin/settings', {
+    settings,
+    pageSpeedData,
+    title: 'Global Settings & SEO',
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.post('/settings', requireAuth, requireSuperAdmin, (req, res) => {
+  try {
+    settingsService.updateSettings(req.body);
+    req.flash('success', 'Global settings updated successfully.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/settings');
 });
 
 // ============================================

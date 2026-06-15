@@ -1,0 +1,81 @@
+<%- include('layout-top', { title: 'Global Settings & SEO', admin: admin, flash: flash }) %>
+
+<div class="header-action">
+  <div>
+    <h2 class="page-title">Global Settings & SEO</h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-top:4px">Manage global configuration, SEO defaults, and view live PageSpeed Insights.</p>
+  </div>
+</div>
+
+<div class="grid-2" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+  
+  <div class="card">
+    <h3 style="margin-top:0"><i class="ti ti-settings" style="color:var(--navy);margin-right:8px"></i> Configuration</h3>
+    <form action="/admin/settings" method="POST">
+      <div class="form-group">
+        <label for="site_title">Global Site Title</label>
+        <input type="text" id="site_title" name="site_title" value="<%= settings.site_title || '' %>" placeholder="e.g. BBI — Bharat Business Index">
+        <small>The default title appended to pages without a specific title.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="default_meta_description">Global Meta Description</label>
+        <textarea id="default_meta_description" name="default_meta_description" rows="3" placeholder="Default SEO meta description..."><%= settings.default_meta_description || '' %></textarea>
+        <small>Fallback meta description if a specific page doesn't have one.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="contact_email">Support / Contact Email</label>
+        <input type="email" id="contact_email" name="contact_email" value="<%= settings.contact_email || '' %>" placeholder="e.g. support@bharatbusinessindex.com">
+      </div>
+
+      <h4 style="margin-top:24px;border-bottom:1px solid #eee;padding-bottom:8px">Social Links</h4>
+      
+      <div class="form-group">
+        <label for="facebook_url">Facebook URL</label>
+        <input type="url" id="facebook_url" name="facebook_url" value="<%= settings.facebook_url || '' %>">
+      </div>
+      <div class="form-group">
+        <label for="twitter_url">Twitter (X) URL</label>
+        <input type="url" id="twitter_url" name="twitter_url" value="<%= settings.twitter_url || '' %>">
+      </div>
+      <div class="form-group">
+        <label for="linkedin_url">LinkedIn URL</label>
+        <input type="url" id="linkedin_url" name="linkedin_url" value="<%= settings.linkedin_url || '' %>">
+      </div>
+
+      <button type="submit" class="btn">Save Settings</button>
+    </form>
+  </div>
+
+  <div class="card" style="align-self: start;">
+    <h3 style="margin-top:0"><i class="ti ti-brand-google" style="color:#4285F4;margin-right:8px"></i> Google PageSpeed API</h3>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.5">Check your site's live SEO and Performance scores directly via Google's PageSpeed API.</p>
+    
+    <% if (pageSpeedData && pageSpeedData.lighthouseResult) { %>
+      <% 
+        const categories = pageSpeedData.lighthouseResult.categories;
+        const seoScore = Math.round(categories.seo.score * 100);
+        const perfScore = Math.round(categories.performance.score * 100);
+      %>
+      <div style="margin:24px 0;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+          <strong style="font-size:14px">SEO Score:</strong>
+          <span class="badge <%= seoScore >= 90 ? 'badge-verified' : (seoScore >= 50 ? 'badge-sponsored' : 'badge-danger') %>" style="font-size:16px;padding:4px 8px;"><%= seoScore %>/100</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+          <strong style="font-size:14px">Performance:</strong>
+          <span class="badge <%= perfScore >= 90 ? 'badge-verified' : (perfScore >= 50 ? 'badge-sponsored' : 'badge-danger') %>" style="font-size:16px;padding:4px 8px;"><%= perfScore %>/100</span>
+        </div>
+      </div>
+      <a href="/admin/settings" class="btn btn-outline" style="width:100%;text-align:center;">Clear Results</a>
+    <% } else { %>
+      <div style="margin-top:24px;">
+        <a href="/admin/settings?run_pagespeed=true" class="btn" style="width:100%;text-align:center;">Run SEO Analysis</a>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<%- include('layout-bottom') %>

@@ -18,6 +18,7 @@ const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 const path = require('path');
 const { recalculateAllRankings } = require('./services/rankingService');
+const settingsService = require('./services/settingsService');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for secure cookies
@@ -117,6 +118,14 @@ app.use(flash());
 app.use((req, res, next) => {
   res.locals.currentPath = req.path;
   res.locals.BASE_URL = process.env.BASE_URL || 'https://bharatbusinessindex.com';
+  
+  // Inject global site settings
+  try {
+    res.locals.globalSettings = settingsService.getAllSettings();
+  } catch (e) {
+    res.locals.globalSettings = {};
+  }
+  
   next();
 });
 

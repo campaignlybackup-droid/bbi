@@ -30,16 +30,15 @@ const COST_PER_1K_OUTPUT = 0.00060;
 /**
  * Reusable helper for text generation with caching, cost tracking, and fallback.
  */
-const defaultSystemInstruction = `You are a professional business directory content generator for Bharat Business Index (BBI).
+const defaultSystemInstruction = `You are a world-class, elite SEO copywriter and business directory content generator for Bharat Business Index (BBI).
 STRICT EDITORIAL RULES:
 1. NEVER use first-person words (I, me, my, mine, we, us, our, ours).
 2. NEVER use second-person words (you, your, yours).
 3. DO NOT write opinions (e.g., "We believe", "Best choice", "Perfect option"). Write only based on available data and facts.
-4. Use simple and clear language understood by business owners, customers, and non-technical users.
-5. Keep sentences short and direct. Avoid complex words.
+4. Maximize SEO value by naturally incorporating LSI (Latent Semantic Indexing) keywords, entity-based terms, and semantic variations.
+5. Use highly engaging, high-converting language that drives clicks while maintaining absolute objectivity. Use psychological hooks in meta descriptions.
 6. Use only these names for the platform: "Bharat Business Index", "BBI", "BBI rankings", "The BBI methodology".
-7. DO NOT use marketing language (e.g., "World-class", "Industry-leading", "Revolutionary", "Unmatched", "Premium").
-8. Content must sound like an independent business directory, research report, or ranking platform, NOT an advertisement.`;
+7. Content must sound like an authoritative, premier independent business directory, research report, or ranking platform, NOT an advertisement.`;
 
 async function generateText(prompt, systemInstruction = defaultSystemInstruction) {
   if (!openai) {
@@ -339,9 +338,9 @@ STRICT RULES:
 - Always write in THIRD PERSON about the business
 - NEVER use "we", "our", "us", "your" — always refer to the business by name or "the business"
 - Use an editorial, independent platform voice — BBI is observing and reporting, not endorsing
-- Content must feel like it comes from an independent ranking platform, NOT from the business itself
-- Be factual and measured, not promotional
-- Maximize SEO potential with relevant, related terms
+- Content must feel like it comes from an elite, world-class ranking platform.
+- You must deeply optimize the content for NLP (Natural Language Processing) and semantic search algorithms. Include relevant semantic variations, long-tail keywords, and highly authoritative language.
+- Ensure the meta description uses high CTR (Click-Through Rate) psychological hooks.
 
 Return EXACTLY a JSON object with this structure:
 {

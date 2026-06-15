@@ -4,11 +4,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title><%= typeof title !== 'undefined' ? title : 'BBI — Bharat Business Index' %></title>
-  <% if(typeof metaDescription !== 'undefined') { %><meta name="description" content="<%= metaDescription %>"><% } %>
+  <title><%= typeof title !== 'undefined' ? title : (typeof globalSettings !== 'undefined' && globalSettings.site_title ? globalSettings.site_title : 'BBI — Bharat Business Index') %></title>
+  <% if(typeof metaDescription !== 'undefined' && metaDescription) { %>
+    <meta name="description" content="<%= metaDescription %>">
+  <% } else if(typeof globalSettings !== 'undefined' && globalSettings.default_meta_description) { %>
+    <meta name="description" content="<%= globalSettings.default_meta_description %>">
+  <% } %>
   <% if(typeof canonicalUrl !== 'undefined') { %><link rel="canonical" href="<%= canonicalUrl %>"><% } %>
 
-  <!-- Open Graph -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YP8QCHTR1B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YP8QCHTR1B');
+  </script>  <!-- Open Graph -->
   <meta property="og:title" content="<%= typeof title !== 'undefined' ? title : 'BBI' %>">
   <% if(typeof metaDescription !== 'undefined') { %><meta property="og:description" content="<%= metaDescription %>"><% } %>
   <meta property="og:type" content="website">
