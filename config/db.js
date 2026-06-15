@@ -7,7 +7,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, process.env.DB_PATH || 'bbi.db');
+let DB_PATH = process.env.DB_PATH || 'bbi.db';
+if (!path.isAbsolute(DB_PATH)) {
+  DB_PATH = path.join(__dirname, DB_PATH);
+}
 const db = new Database(DB_PATH);
 
 // Performance & integrity pragmas
