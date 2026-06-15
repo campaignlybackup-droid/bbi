@@ -1,0 +1,9 @@
+node_modules/
+console.log
+stderr.log
+tmp/
+config/bbi.db
+config/bbi.db-shm
+config/bbi.db-wal
+.DS_Store
+.env
