@@ -45,6 +45,7 @@
   <!-- Rankings list as cards on mobile -->
   <div class="rank-grid" style="grid-template-columns:1fr">
     <% rankings.forEach(b => { %>
+    <article>
     <a href="/business/<%= b.slug %>" class="rcard">
       <div class="rcard-top">
         <div class="rank-num">#<%= b.rank_position %></div>
@@ -53,11 +54,11 @@
           <% if(b.badge) { %><span class="badge badge-gold"><%= b.badge %></span><% } %>
         </div>
       </div>
-      <div class="biz-name">
+      <h2 class="biz-name" style="margin:0;font-size:inherit;font-weight:inherit;line-height:inherit;">
         <%= b.name %>
         <% if(b.sponsored) { %><span class="tag-sponsored" style="margin-left:6px">Sponsored</span><% } %>
         <% if(b.verified) { %><span class="tag-verified" style="margin-left:4px">Verified</span><% } %>
-      </div>
+      </h2>
       <div class="biz-loc"><%= b.address || city.name %></div>
       <% if(b.google_rating) { %>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">
@@ -70,6 +71,7 @@
       </div>
       <div class="score-track"><div class="score-fill score-fill-navy" style="width:<%= b.final_score %>%"></div></div>
     </a>
+    </article>
     <% }) %>
   </div>
 

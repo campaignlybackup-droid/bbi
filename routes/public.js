@@ -98,6 +98,9 @@ router.get('/', cacheMiddleware, (req, res) => {
   }
   const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
 
+  // Organization Schema
+  const organizationSchema = seoService.generateOrganizationSchema();
+
   res.render('index', {
     topCategories, 
     topCities, 
@@ -105,6 +108,7 @@ router.get('/', cacheMiddleware, (req, res) => {
     customRankings,
     faqSchema, 
     faqs,
+    organizationSchema,
     title: 'BBI — India\'s Trusted Business Rankings',
     metaDescription: 'Bharat Business Index — Independent, transparent business rankings across Indian cities. Updated monthly based on verified reviews.',
     canonicalUrl: BASE_URL,

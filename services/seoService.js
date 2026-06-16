@@ -193,8 +193,14 @@ function generateLocalBusinessSchema(business) {
   // Adding requested fields with generic fallbacks if not in DB
   schema.priceRange = '$$';
   schema.openingHours = 'Mo-Su 09:00-18:00';
-  // Note: For real coordinates we would need lat/lng in DB
-  // schema.geo = { '@type': 'GeoCoordinates', latitude: '...', longitude: '...' };
+  
+  if (business.latitude && business.longitude) {
+    schema.geo = { 
+      '@type': 'GeoCoordinates', 
+      latitude: business.latitude, 
+      longitude: business.longitude 
+    };
+  }
 
   return schema;
 }
@@ -222,6 +228,13 @@ function generateArticleSchema(post) {
         '@type': 'ImageObject',
         url: `${BASE_URL}/images/logo.png`
       }
+    },
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      xpath: [
+        "/html/head/title",
+        "/html/head/meta[@name='description']/@content"
+      ]
     }
   };
 }
@@ -256,6 +269,14 @@ function generateItemListSchema(rankings, city, category) {
       bestRating: 5
     };
   }
+
+  schema.speakable = {
+    '@type': 'SpeakableSpecification',
+    xpath: [
+      "/html/head/title",
+      "/html/head/meta[@name='description']/@content"
+    ]
+  };
 
   return schema;
 }
@@ -326,6 +347,74 @@ function getRelatedRankings(cityId, categoryId, limit = 6) {
   return [...sameCat, ...sameCity].slice(0, limit);
 }
 
+/**
+ * Generate Organization structured data.
+ */
+function generateOrganizationSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Bharat Business Index',
+    url: BASE_URL,
+    logo: `${BASE_URL}/images/logo.png`,
+    sameAs: [
+      'https://www.facebook.com/bharatbusinessindex',
+      'https://www.twitter.com/bharatbusinessindex',
+      'https://www.linkedin.com/company/bharatbusinessindex'
+    ]
+  };
+}
+
+/**
+ * Generate LLM-optimized rankings in Markdown format.
+ */
+function generateRankingsLlmsTxt() {
+  const combos = db.prepare(`
+    SELECT DISTINCT c.id as city_id, c.name as city_name, cat.id as cat_id, cat.name as cat_name
+    FROM businesses b
+    JOIN cities c ON c.id = b.city_id
+    JOIN categories cat ON cat.id = b.category_id
+    WHERE b.active = 1 AND c.active = 1 AND cat.active = 1
+  `).all();
+
+  let md = \`# Bharat Business Index - Top Rankings\n\n\`;
+  md += \`This document provides a machine-readable summary of the top-ranked businesses across India, curated by Bharat Business Index.\n\n\`;
+
+  for (const combo of combos) {
+    // Get latest ranking date for this combo
+    const latestDateRow = db.prepare(\`
+      SELECT ranking_date FROM ranking_history 
+      WHERE city_id = ? AND category_id = ? 
+      ORDER BY ranking_date DESC LIMIT 1
+    \`).get(combo.city_id, combo.cat_id);
+
+    if (latestDateRow) {
+      const topBiz = db.prepare(\`
+        SELECT b.name, b.address, b.phone, b.website, b.google_rating, rh.rank_position
+        FROM ranking_history rh
+        JOIN businesses b ON b.id = rh.business_id
+        WHERE rh.city_id = ? AND rh.category_id = ? AND rh.ranking_date = ?
+        ORDER BY rh.rank_position ASC
+        LIMIT 5
+      \`).all(combo.city_id, combo.cat_id, latestDateRow.ranking_date);
+
+      if (topBiz.length > 0) {
+        md += \`## Top \${combo.cat_name} in \${combo.city_name}\n\`;
+        for (const b of topBiz) {
+          md += \`\${b.rank_position}. **\${b.name}**\n\`;
+          if (b.google_rating) md += \`   - Rating: \${b.google_rating} Stars\n\`;
+          if (b.address) md += \`   - Address: \${b.address}\n\`;
+          if (b.phone) md += \`   - Phone: \${b.phone}\n\`;
+          if (b.website) md += \`   - Website: \${b.website}\n\`;
+        }
+        md += \`\n\`;
+      }
+    }
+  }
+
+  return md;
+}
+
 module.exports = {
   getSeoContent,
   saveSeoContent,
@@ -338,4 +427,6 @@ module.exports = {
   generateFaqSchema,
   generateBreadcrumbSchema,
   getRelatedRankings,
+  generateOrganizationSchema,
+  generateRankingsLlmsTxt,
 };

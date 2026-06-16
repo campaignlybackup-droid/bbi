@@ -29,6 +29,13 @@ router.get('/llms.txt', (req, res) => {
   res.send(seoService.generateLlmsTxt());
 });
 
+// llms-rankings.txt
+router.get('/llms-rankings.txt', (req, res) => {
+  res.set('Content-Type', 'text/plain');
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.send(seoService.generateRankingsLlmsTxt());
+});
+
 // Badge SVG
 router.get('/api/badge/:businessId', (req, res) => {
   const data = badgeService.getBadgeForBusiness(parseInt(req.params.businessId));

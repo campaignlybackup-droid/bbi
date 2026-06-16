@@ -93,29 +93,32 @@
       <!-- Business info -->
       <div class="profile-card">
         <div class="profile-card-title">Business Details</div>
+        <dl style="margin:0;padding:0">
         <% if(business.address) { %>
         <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:10px;display:flex;gap:8px">
-          <i class="ti ti-map-pin" style="color:var(--navy);flex-shrink:0;font-size:16px"></i>
-          <a href="https://maps.google.com/?q=<%= encodeURIComponent(business.name + ' ' + business.address + ', ' + business.city_name) %>" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;"><%= business.address %></a>
+          <dt style="margin:0"><i class="ti ti-map-pin" style="color:var(--navy);flex-shrink:0;font-size:16px" aria-label="Address"></i></dt>
+          <dd style="margin:0"><a href="https://maps.google.com/?q=<%= encodeURIComponent(business.name + ' ' + business.address + ', ' + business.city_name) %>" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;"><%= business.address %></a></dd>
         </div>
         <% } %>
         <% if(business.phone) { %>
         <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:10px;display:flex;gap:8px">
-          <i class="ti ti-phone" style="color:var(--navy);flex-shrink:0;font-size:16px"></i><%= business.phone.replace(/^&#x27;|^'/, '') %>
+          <dt style="margin:0"><i class="ti ti-phone" style="color:var(--navy);flex-shrink:0;font-size:16px" aria-label="Phone"></i></dt>
+          <dd style="margin:0"><%= business.phone.replace(/^&#x27;|^'/, '') %></dd>
         </div>
         <% } %>
         <% if(business.website) { %>
         <div style="font-size:var(--font-size-sm);margin-bottom:10px;display:flex;gap:8px">
-          <i class="ti ti-world" style="color:var(--navy);flex-shrink:0;font-size:16px"></i>
-          <a href="<%= business.website %>" target="_blank" rel="noopener" style="color:var(--navy)"><%= business.website %></a>
+          <dt style="margin:0"><i class="ti ti-world" style="color:var(--navy);flex-shrink:0;font-size:16px" aria-label="Website"></i></dt>
+          <dd style="margin:0"><a href="<%= business.website %>" target="_blank" rel="noopener" style="color:var(--navy)"><%= business.website %></a></dd>
         </div>
         <% } %>
         <% if(business.google_rating) { %>
         <div style="font-size:var(--font-size-sm);color:var(--text-secondary);display:flex;gap:8px;margin-bottom:10px">
-          <i class="ti ti-star-filled" style="color:var(--gold);flex-shrink:0;font-size:16px"></i>
-          <%= business.google_rating %> · <%= business.google_review_count %> reviews
+          <dt style="margin:0"><i class="ti ti-star-filled" style="color:var(--gold);flex-shrink:0;font-size:16px" aria-label="Rating"></i></dt>
+          <dd style="margin:0"><%= business.google_rating %> · <%= business.google_review_count %> reviews</dd>
         </div>
         <% } %>
+        </dl>
         <% if(business.description) { %>
         <div style="font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7;margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--border-light)">
           <%= business.description %>
@@ -125,14 +128,14 @@
         <% if(typeof customAttributes !== 'undefined' && customAttributes.length) { %>
         <div style="margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--border-light)">
           <div style="font-size:var(--font-size-xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:var(--space-2)">Details</div>
-          <div class="custom-attrs">
+          <dl class="custom-attrs" style="margin:0;padding:0">
             <% customAttributes.forEach(attr => { %>
-            <div class="custom-attr">
-              <span class="custom-attr-key"><%= attr.key %>:</span>
-              <span class="custom-attr-value"><%= attr.value %></span>
+            <div class="custom-attr" style="display:flex;margin-bottom:4px">
+              <dt class="custom-attr-key" style="margin:0;font-weight:bold;margin-right:8px"><%= attr.key %>:</dt>
+              <dd class="custom-attr-value" style="margin:0"><%= attr.value %></dd>
             </div>
             <% }) %>
-          </div>
+          </dl>
         </div>
         <% } %>
       </div>

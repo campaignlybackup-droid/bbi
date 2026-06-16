@@ -1,4 +1,7 @@
 <%- include('partials/header') %>
+<% if (typeof organizationSchema !== 'undefined') { %>
+<script type="application/ld+json"><%- JSON.stringify(organizationSchema) %></script>
+<% } %>
 
 <%# === 1. HERO === %>
 <div class="hero">
