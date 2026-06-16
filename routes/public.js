@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { getTrendBadge, getMovement, getRankingExplanations } = require('../services/rankingService');
-const { generateLocalBusinessSchema, generateItemListSchema, generateFaqSchema, generateBreadcrumbSchema, getSeoContent, getRelatedRankings } = require('../services/seoService');
+const { generateLocalBusinessSchema, generateItemListSchema, generateFaqSchema, generateBreadcrumbSchema, getSeoContent, getRelatedRankings, generateOrganizationSchema } = require('../services/seoService');
 const { BASE_URL } = require('../config/constants');
 const customRankingService = require('../services/customRankingService');
 const inquiryService = require('../services/inquiryService');
@@ -99,7 +99,7 @@ router.get('/', cacheMiddleware, (req, res) => {
   const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
 
   // Organization Schema
-  const organizationSchema = seoService.generateOrganizationSchema();
+  const organizationSchema = generateOrganizationSchema();
 
   res.render('index', {
     topCategories, 
