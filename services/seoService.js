@@ -230,7 +230,7 @@ function generateArticleSchema(post) {
  * Generate ItemList structured data for rankings.
  */
 function generateItemListSchema(rankings, city, category) {
-  return {
+  const schema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: `Top ${category.name} in ${city.name}`,
@@ -243,6 +243,21 @@ function generateItemListSchema(rankings, city, category) {
       url: `${BASE_URL}/business/${b.slug}`,
     })),
   };
+
+  // Add AggregateRating to get Gold Stars for the ranking page!
+  const validRatings = rankings.filter(b => b.google_rating > 0 && b.google_review_count > 0);
+  if (validRatings.length > 0) {
+    const totalRating = validRatings.reduce((sum, b) => sum + b.google_rating, 0);
+    const totalReviews = validRatings.reduce((sum, b) => sum + b.google_review_count, 0);
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: (totalRating / validRatings.length).toFixed(1),
+      reviewCount: totalReviews,
+      bestRating: 5
+    };
+  }
+
+  return schema;
 }
 
 /**

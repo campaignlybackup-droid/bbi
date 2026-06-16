@@ -1,0 +1,47 @@
+<%- include('partials/header', { title, metaDescription, canonicalUrl }) %>
+
+<div class="container">
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumb" aria-label="breadcrumbs" style="margin-top: 20px;">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/category/<%= cat.slug %>"><%= cat.name %></a></li>
+      <li class="is-active"><a href="#" aria-current="page">Near Me</a></li>
+    </ul>
+  </nav>
+
+  <div class="header-action" style="margin-top: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px;">
+    <div>
+      <h1 class="page-title">Best <%= cat.name %> Near Me</h1>
+      <p style="color:var(--text-muted); font-size: 16px; margin-top: 10px; max-width: 800px;">
+        Looking for the highest-rated <%= cat.name.toLowerCase() %> in your local area? We track the top-performing businesses across India. Select your nearest city below to see independent, review-based rankings.
+      </p>
+    </div>
+  </div>
+
+  <div style="margin-top: 40px;">
+    <h2>Top Cities for <%= cat.name %></h2>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+      <% if (cityRankings && cityRankings.length > 0) { %>
+        <% cityRankings.forEach(c => { %>
+          <a href="/rankings/<%= c.slug %>/<%= cat.slug %>" class="card" style="text-decoration: none; color: inherit; display: block; transition: transform 0.2s, box-shadow 0.2s;">
+            <h3 style="margin: 0; color: var(--primary); font-size: 18px;"><%= c.name %></h3>
+            <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--text-muted);">
+              <%= c.biz_count %> <%= cat.name.toLowerCase() %> ranked
+            </p>
+          </a>
+        <% }) %>
+      <% } else { %>
+        <p>No cities found with this category yet.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<% if (typeof breadcrumbSchema !== 'undefined') { %>
+<script type="application/ld+json">
+<%- JSON.stringify(breadcrumbSchema) %>
+</script>
+<% } %>
+
+<%- include('partials/footer') %>

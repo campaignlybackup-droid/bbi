@@ -16,9 +16,41 @@ const claimService = require('../services/claimService');
 const { validateInquiry, validateClaim } = require('../middleware/validation');
 
 // ============================================
+// Extreme Page Speed Caching (In-Memory)
+// ============================================
+const NodeCache = require('node-cache');
+// Cache for 15 minutes (900 seconds)
+const publicCache = new NodeCache({ stdTTL: 900, checkperiod: 120 });
+
+const cacheMiddleware = (req, res, next) => {
+  // Only cache GET requests without query parameters (or handle them safely)
+  if (req.method !== 'GET' || Object.keys(req.query).length > 0) return next();
+  
+  const key = req.originalUrl;
+  const cachedResponse = publicCache.get(key);
+  
+  if (cachedResponse) {
+    res.setHeader('X-Cache', 'HIT');
+    return res.send(cachedResponse);
+  } else {
+    res.setHeader('X-Cache', 'MISS');
+    // Override res.send to intercept the rendered HTML and cache it
+    const originalSend = res.send;
+    res.send = function (body) {
+      // Only cache valid HTML responses, not errors
+      if (res.statusCode === 200) {
+        publicCache.set(key, body);
+      }
+      originalSend.call(this, body);
+    };
+    next();
+  }
+};
+
+// ============================================
 // HOMEPAGE — M-05: Dynamic, no Jaipur hardcoding
 // ============================================
-router.get('/', (req, res) => {
+router.get('/', cacheMiddleware, (req, res) => {
   // Get top categories
   const topCategories = db.prepare(`
     SELECT c.id, c.name, c.slug, c.icon, COUNT(b.id) as biz_count
@@ -82,7 +114,7 @@ router.get('/', (req, res) => {
 // ============================================
 // RANKINGS INDEX — Show all available rankings
 // ============================================
-router.get('/rankings', (req, res) => {
+router.get('/rankings', cacheMiddleware, (req, res) => {
   const combos = db.prepare(`
     SELECT DISTINCT c.name as city_name, c.slug as city_slug, 
                     cat.name as cat_name, cat.slug as cat_slug, cat.icon
@@ -107,7 +139,7 @@ router.get('/rankings', (req, res) => {
 // ============================================
 // RANKINGS — City + Category
 // ============================================
-router.get('/rankings/:citySlug/:catSlug', (req, res) => {
+router.get('/rankings/:citySlug/:catSlug', cacheMiddleware, (req, res) => {
   const city = db.prepare(`SELECT * FROM cities WHERE slug=? OR LOWER(REPLACE(name,' ','-'))=?`)
     .get(req.params.citySlug, req.params.citySlug);
   const cat = db.prepare(`SELECT * FROM categories WHERE slug=?`).get(req.params.catSlug);
@@ -263,7 +295,7 @@ router.get('/best/:slug', (req, res) => {
 // ============================================
 // CITIES INDEX — Show all cities
 // ============================================
-router.get('/city', (req, res) => {
+router.get('/city', cacheMiddleware, (req, res) => {
   const cities = db.prepare(`
     SELECT c.*, COUNT(b.id) as biz_count
     FROM cities c
@@ -289,7 +321,7 @@ router.get('/city', (req, res) => {
 // ============================================
 // CITY LANDING PAGE
 // ============================================
-router.get('/city/:citySlug', (req, res) => {
+router.get('/city/:citySlug', cacheMiddleware, (req, res) => {
   const city = db.prepare(`SELECT * FROM cities WHERE slug=? OR LOWER(REPLACE(name,' ','-'))=?`)
     .get(req.params.citySlug, req.params.citySlug);
   if (!city) return res.status(404).render('404', { title: 'Not Found' });
@@ -333,7 +365,7 @@ router.get('/city/:citySlug', (req, res) => {
 // ============================================
 // CATEGORY LANDING PAGE
 // ============================================
-router.get('/category/:catSlug', (req, res) => {
+router.get('/category/:catSlug', cacheMiddleware, (req, res) => {
   const cat = db.prepare(`SELECT * FROM categories WHERE slug=?`).get(req.params.catSlug);
   if (!cat) return res.status(404).render('404', { title: 'Not Found' });
 
@@ -494,6 +526,40 @@ router.post('/business/:slug/claim', validateClaim, (req, res) => {
     req.flash('error', e.message || 'Something went wrong.');
   }
   res.redirect(`/business/${req.params.slug}/claim`);
+});
+
+// ============================================
+// PROGRAMMATIC SEO: "Near Me" pages
+// ============================================
+router.get('/best-:catSlug-near-me', cacheMiddleware, (req, res) => {
+  const catSlug = req.params.catSlug;
+  const cat = db.prepare(`SELECT * FROM categories WHERE slug=? AND active=1`).get(catSlug);
+  
+  if (!cat) return res.status(404).render('404', { title: 'Not Found' });
+
+  // Get cities with businesses in this category
+  const cityRankings = db.prepare(`
+    SELECT c.id, c.name, c.slug, c.state, COUNT(b.id) as biz_count
+    FROM cities c
+    JOIN businesses b ON b.city_id = c.id AND b.category_id = ? AND b.active = 1
+    WHERE c.active = 1
+    GROUP BY c.id
+    ORDER BY biz_count DESC
+    LIMIT 20
+  `).all(cat.id);
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: cat.name, url: `/category/${cat.slug}` },
+    { name: `Best ${cat.name} Near Me` }
+  ]);
+
+  res.render('near-me', {
+    cat, cityRankings, breadcrumbSchema,
+    title: `Best ${cat.name} Near Me — Top Local Options`,
+    metaDescription: `Find the highest-rated ${cat.name} near your location. Compare reviews, scores, and find the perfect local option.`,
+    canonicalUrl: `${BASE_URL}/best-${cat.slug}-near-me`,
+  });
 });
 
 module.exports = router;

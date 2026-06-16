@@ -44,13 +44,55 @@
         <input type="url" id="linkedin_url" name="linkedin_url" value="<%= settings.linkedin_url || '' %>">
       </div>
 
-      <button type="submit" class="btn">Save Settings</button>
+      <h4 style="margin-top:24px;border-bottom:1px solid #eee;padding-bottom:8px">Google SEO Automation</h4>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="auto_ping_indexing" name="auto_ping_indexing" value="true" <%= settings.auto_ping_indexing === 'true' ? 'checked' : '' %>>
+        <label for="auto_ping_indexing" style="margin:0;font-weight:normal;">Auto-Ping Google Indexing API on new business creation</label>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">Requires a valid Google Cloud Service Account credentials file (`config/google-credentials.json`).</p>
+
+      <button type="submit" class="btn" style="margin-top:16px;">Save Settings</button>
     </form>
   </div>
 
-  <div class="card" style="align-self: start;">
-    <h3 style="margin-top:0"><i class="ti ti-brand-google" style="color:#4285F4;margin-right:8px"></i> Google PageSpeed API</h3>
-    <p style="font-size:13px;color:var(--text-muted);line-height:1.5">Check your site's live SEO and Performance scores directly via Google's PageSpeed API.</p>
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    
+    <!-- Google Search Console Widget -->
+    <div class="card">
+      <h3 style="margin-top:0"><i class="ti ti-chart-line" style="color:#0F9D58;margin-right:8px"></i> Google Search Console</h3>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.5">View your actual Google Search clicks and impressions over the last 30 days.</p>
+      
+      <% if (gscData) { %>
+        <% 
+          let totalClicks = 0;
+          let totalImpressions = 0;
+          gscData.forEach(row => {
+            totalClicks += row.clicks;
+            totalImpressions += row.impressions;
+          });
+        %>
+        <div style="margin:24px 0;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+            <strong style="font-size:14px">Total Clicks (30d):</strong>
+            <span class="badge badge-verified" style="font-size:16px;padding:4px 8px;"><%= totalClicks.toLocaleString() %></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+            <strong style="font-size:14px">Total Impressions (30d):</strong>
+            <span class="badge badge-sponsored" style="font-size:16px;padding:4px 8px;"><%= totalImpressions.toLocaleString() %></span>
+          </div>
+        </div>
+        <a href="/admin/settings" class="btn btn-outline" style="width:100%;text-align:center;">Clear Results</a>
+      <% } else { %>
+        <div style="margin-top:24px;">
+          <a href="/admin/settings?run_gsc=true" class="btn" style="width:100%;text-align:center;background-color:#0F9D58;">Fetch Live Search Data</a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Google PageSpeed Widget -->
+    <div class="card">
+      <h3 style="margin-top:0"><i class="ti ti-brand-google" style="color:#4285F4;margin-right:8px"></i> Google PageSpeed API</h3>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.5">Check your site's live SEO and Performance scores directly via Google's PageSpeed API.</p>
     
     <% if (pageSpeedData && pageSpeedData.lighthouseResult) { %>
       <% 
@@ -74,6 +116,7 @@
         <a href="/admin/settings?run_pagespeed=true" class="btn" style="width:100%;text-align:center;">Run SEO Analysis</a>
       </div>
     <% } %>
+    </div>
   </div>
 
 </div>

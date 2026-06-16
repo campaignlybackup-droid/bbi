@@ -21,6 +21,7 @@ const seoService = require('../services/seoService');
 const digestService = require('../services/digestService');
 const customRankingService = require('../services/customRankingService');
 const settingsService = require('../services/settingsService');
+const googleApiService = require('../services/googleApiService');
 const jobQueue = require('../services/ai/jobQueue');
 const aiProvider = require('../services/ai/index').getProvider();
 
@@ -171,6 +172,12 @@ router.post('/businesses', requireAuth, (req, res) => {
     if (bInfo) {
       jobQueue.enqueue('listing_generate', bInfo);
       jobQueue.enqueue('faq_generate', bInfo);
+    }
+
+    // Ping Google Indexing API asynchronously (fire and forget)
+    if (settingsService.getSetting('auto_ping_indexing') === 'true') {
+      const bizUrl = `${process.env.BASE_URL || 'https://bharatbusinessindex.com'}/business/${slug}`;
+      googleApiService.pingIndexingApi(bizUrl, 'URL_UPDATED').catch(console.error);
     }
 
     req.flash('success', 'Business added successfully.');
@@ -532,9 +539,11 @@ router.get('/settings', requireAuth, requireSuperAdmin, async (req, res) => {
   
   // Optional: Fetch live PageSpeed Insights if requested
   let pageSpeedData = null;
+  let gscData = null;
+  const targetUrl = process.env.BASE_URL || 'https://bharatbusinessindex.com';
+
   if (req.query.run_pagespeed === 'true') {
     try {
-      const targetUrl = process.env.BASE_URL || 'https://bharatbusinessindex.com';
       const response = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&category=SEO&category=PERFORMANCE`);
       if (response.ok) {
         pageSpeedData = await response.json();
@@ -544,9 +553,16 @@ router.get('/settings', requireAuth, requireSuperAdmin, async (req, res) => {
     }
   }
 
+  if (req.query.run_gsc === 'true') {
+    // Format required by GSC is typically 'sc-domain:example.com' or 'https://example.com/'
+    const siteUrl = targetUrl.includes('localhost') ? targetUrl : `sc-domain:${targetUrl.replace('https://', '').replace('http://', '')}`;
+    gscData = await googleApiService.getSearchConsoleData(siteUrl, 30);
+  }
+
   res.render('admin/settings', {
     settings,
     pageSpeedData,
+    gscData,
     title: 'Global Settings & SEO',
     admin: req.session,
     flash: { success: req.flash('success'), error: req.flash('error') }
@@ -983,6 +999,46 @@ const csvUpload = multer({
       cb(new Error('Only CSV files are allowed. No executables or unsupported formats.'));
     }
   },
+});
+
+// Setup multer for Image uploads
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Only images are allowed'));
+  }
+});
+
+const sharp = require('sharp');
+
+// Image Upload Endpoint (Converts to WebP)
+router.post('/upload-image', requireAuth, imageUpload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
+    const outputPath = path.join(__dirname, '..', 'public', 'images', 'uploads', filename);
+
+    // Ensure directory exists
+    const dir = path.dirname(outputPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    // Convert to WebP and save
+    await sharp(req.file.buffer)
+      .webp({ quality: 80 })
+      .toFile(outputPath);
+
+    res.json({ 
+      success: true, 
+      url: `/images/uploads/${filename}`,
+      message: 'Image converted to WebP and uploaded successfully.' 
+    });
+  } catch (error) {
+    console.error('Image Upload Error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // CSV Import — Upload page
