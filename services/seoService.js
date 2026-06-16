@@ -377,37 +377,37 @@ function generateRankingsLlmsTxt() {
     WHERE b.active = 1 AND c.active = 1 AND cat.active = 1
   `).all();
 
-  let md = \`# Bharat Business Index - Top Rankings\n\n\`;
-  md += \`This document provides a machine-readable summary of the top-ranked businesses across India, curated by Bharat Business Index.\n\n\`;
+  let md = `# Bharat Business Index - Top Rankings\n\n`;
+  md += `This document provides a machine-readable summary of the top-ranked businesses across India, curated by Bharat Business Index.\n\n`;
 
   for (const combo of combos) {
     // Get latest ranking date for this combo
-    const latestDateRow = db.prepare(\`
+    const latestDateRow = db.prepare(`
       SELECT ranking_date FROM ranking_history 
       WHERE city_id = ? AND category_id = ? 
       ORDER BY ranking_date DESC LIMIT 1
-    \`).get(combo.city_id, combo.cat_id);
+    `).get(combo.city_id, combo.cat_id);
 
     if (latestDateRow) {
-      const topBiz = db.prepare(\`
+      const topBiz = db.prepare(`
         SELECT b.name, b.address, b.phone, b.website, b.google_rating, rh.rank_position
         FROM ranking_history rh
         JOIN businesses b ON b.id = rh.business_id
         WHERE rh.city_id = ? AND rh.category_id = ? AND rh.ranking_date = ?
         ORDER BY rh.rank_position ASC
         LIMIT 5
-      \`).all(combo.city_id, combo.cat_id, latestDateRow.ranking_date);
+      `).all(combo.city_id, combo.cat_id, latestDateRow.ranking_date);
 
       if (topBiz.length > 0) {
-        md += \`## Top \${combo.cat_name} in \${combo.city_name}\n\`;
+        md += `## Top ${combo.cat_name} in ${combo.city_name}\n`;
         for (const b of topBiz) {
-          md += \`\${b.rank_position}. **\${b.name}**\n\`;
-          if (b.google_rating) md += \`   - Rating: \${b.google_rating} Stars\n\`;
-          if (b.address) md += \`   - Address: \${b.address}\n\`;
-          if (b.phone) md += \`   - Phone: \${b.phone}\n\`;
-          if (b.website) md += \`   - Website: \${b.website}\n\`;
+          md += `${b.rank_position}. **${b.name}**\n`;
+          if (b.google_rating) md += `   - Rating: ${b.google_rating} Stars\n`;
+          if (b.address) md += `   - Address: ${b.address}\n`;
+          if (b.phone) md += `   - Phone: ${b.phone}\n`;
+          if (b.website) md += `   - Website: ${b.website}\n`;
         }
-        md += \`\n\`;
+        md += `\n`;
       }
     }
   }
