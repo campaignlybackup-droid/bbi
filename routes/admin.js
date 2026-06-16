@@ -75,10 +75,12 @@ router.get('/', requireAuth, (req, res) => {
   let inquiryStats = { pending: 0 };
   let claimStats = { pending: 0 };
   let dashboardAnalytics = { viewsToday: 0, viewsWeek: 0, searchesToday: 0 };
+  let aiStats = { queued: 0, processing: 0, completed: 0, failed: 0 };
 
   try { inquiryStats = inquiryService.getInquiryStats(); } catch (e) {}
   try { claimStats = claimService.getClaimStats(); } catch (e) {}
   try { dashboardAnalytics = analyticsService.getDashboardStats(); } catch (e) {}
+  try { aiStats = jobQueue.getQueueStats(); } catch (e) {}
 
   const recent = db.prepare(`
     SELECT b.name, b.slug, c.name as city, cat.name as category, b.created_at
@@ -89,7 +91,7 @@ router.get('/', requireAuth, (req, res) => {
   `).all();
 
   res.render('admin/dashboard', {
-    stats, recent, inquiryStats, claimStats, dashboardAnalytics,
+    stats, recent, inquiryStats, claimStats, dashboardAnalytics, aiStats,
     title: 'Dashboard', admin: req.session,
     flash: { success: req.flash('success'), error: req.flash('error') }
   });
@@ -255,6 +257,37 @@ router.post('/businesses/:id/delete', requireAuth, (req, res) => {
   db.prepare(`UPDATE businesses SET active=0 WHERE id=?`).run(req.params.id);
   req.flash('success', 'Business removed.');
   res.redirect('/admin/businesses');
+});
+
+// ============================================
+// API: GOOGLE PLACES AUTOFILL
+// ============================================
+router.post('/api/places/autofill', requireAuth, async (req, res) => {
+  try {
+    const { query, location } = req.body;
+    if (!query) return res.status(400).json({ error: 'Query is required' });
+
+    if (!placesService.isConfigured()) {
+      return res.status(400).json({ error: 'Google Places API key is not configured.' });
+    }
+
+    const searchResult = await placesService.searchPlaces(query, location || '');
+    if (searchResult.error || !searchResult.results || searchResult.results.length === 0) {
+      return res.status(404).json({ error: searchResult.error || 'No business found on Google Maps.' });
+    }
+
+    const bestMatch = searchResult.results[0];
+    const details = await placesService.getPlaceDetails(bestMatch.place_id);
+
+    if (!details) {
+      return res.status(404).json({ error: 'Could not fetch details for this business.' });
+    }
+
+    res.json({ success: true, data: details });
+  } catch (error) {
+    console.error('Places API AutoFill Error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ============================================

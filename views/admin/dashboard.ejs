@@ -12,7 +12,7 @@
 </div>
 
 <!-- Quick stats row -->
-<div class="stat-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
   <div class="stat-card" style="border-left:3px solid var(--gold)">
     <div class="stat-num"><%= inquiryStats.pending %></div>
     <div class="stat-label">Pending Inquiries</div>
@@ -22,6 +22,15 @@
     <div class="stat-num"><%= claimStats.pending %></div>
     <div class="stat-label">Pending Claims</div>
     <a href="/admin/claims?status=pending" style="font-size:var(--font-size-xs);color:var(--navy);font-weight:600;margin-top:var(--space-2);display:block">Review →</a>
+  </div>
+  <div class="stat-card" style="border-left:3px solid #0F9D58">
+    <div class="stat-num" style="display:flex;gap:12px;font-size:20px;">
+      <span title="Processing"><i class="ti ti-loader" style="color:var(--primary)"></i> <%= aiStats ? aiStats.processing : 0 %></span>
+      <span title="Queued"><i class="ti ti-clock" style="color:var(--gold)"></i> <%= aiStats ? aiStats.queued : 0 %></span>
+      <span title="Failed"><i class="ti ti-alert-triangle" style="color:var(--error)"></i> <%= aiStats ? aiStats.failed : 0 %></span>
+    </div>
+    <div class="stat-label">AI Job Queue</div>
+    <div style="font-size:var(--font-size-xs);color:var(--text-muted);font-weight:500;margin-top:var(--space-2);display:block"><%= aiStats ? aiStats.completed : 0 %> jobs completed total.</div>
   </div>
 </div>
 

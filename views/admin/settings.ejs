@@ -62,11 +62,11 @@
       <h3 style="margin-top:0"><i class="ti ti-chart-line" style="color:#0F9D58;margin-right:8px"></i> Google Search Console</h3>
       <p style="font-size:13px;color:var(--text-muted);line-height:1.5">View your actual Google Search clicks and impressions over the last 30 days.</p>
       
-      <% if (gscData) { %>
+      <% if (gscData && gscData.timeline) { %>
         <% 
           let totalClicks = 0;
           let totalImpressions = 0;
-          gscData.forEach(row => {
+          gscData.timeline.forEach(row => {
             totalClicks += row.clicks;
             totalImpressions += row.impressions;
           });
@@ -80,6 +80,20 @@
             <strong style="font-size:14px">Total Impressions (30d):</strong>
             <span class="badge badge-sponsored" style="font-size:16px;padding:4px 8px;"><%= totalImpressions.toLocaleString() %></span>
           </div>
+
+          <% if (gscData.topQueries && gscData.topQueries.length > 0) { %>
+          <div style="margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
+            <strong style="font-size:14px;display:block;margin-bottom:12px;">Top Search Queries</strong>
+            <ul style="list-style:none;padding:0;margin:0;">
+              <% gscData.topQueries.forEach(q => { %>
+                <li style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #eee;">
+                  <span style="color:var(--text-primary)"><%= q.keys[0] %></span>
+                  <span style="color:var(--text-muted)"><%= q.clicks %> clicks</span>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+          <% } %>
         </div>
         <a href="/admin/settings" class="btn btn-outline" style="width:100%;text-align:center;">Clear Results</a>
       <% } else { %>

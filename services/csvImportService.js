@@ -15,6 +15,8 @@ const searchService = require('./searchService');
 const jobQueue = require('./ai/jobQueue');
 const auditService = require('./auditService');
 const pageRebuildService = require('./pageRebuildService');
+const settingsService = require('./settingsService');
+const googleApiService = require('./googleApiService');
 
 // ============================================
 // VALIDATION
@@ -356,7 +358,7 @@ function executeImport(importId, adminId) {
   // Enqueue AI content generation for all imported businesses
   importedBusinessIds.forEach(bizId => {
     const bInfo = db.prepare(`
-      SELECT b.name, c.name as city_name, cat.name as cat_name, b.verified
+      SELECT b.name, b.slug, c.name as city_name, cat.name as cat_name, b.verified
       FROM businesses b
       LEFT JOIN cities c ON c.id = b.city_id
       LEFT JOIN categories cat ON cat.id = b.category_id
@@ -377,6 +379,15 @@ function executeImport(importId, adminId) {
       // Also enqueue standard listing + FAQ generation
       jobQueue.enqueue('listing_generate', bInfo);
       jobQueue.enqueue('faq_generate', bInfo);
+      
+      // Ping Google Indexing API safely with staggering (200ms apart)
+      if (settingsService.getSetting('auto_ping_indexing') === 'true') {
+        const slug = bInfo.slug || bInfo.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const bizUrl = `${process.env.BASE_URL || 'https://bharatbusinessindex.com'}/business/${slug}`;
+        setTimeout(() => {
+          googleApiService.pingIndexingApi(bizUrl, 'URL_UPDATED').catch(e => console.error(`Batch Indexing Error for ${slug}:`, e.message));
+        }, importedBusinessIds.indexOf(bizId) * 200);
+      }
     }
   });
 

@@ -61,16 +61,30 @@ async function getSearchConsoleData(siteUrl, days = 30) {
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - days);
 
-    const res = await webmasters.searchanalytics.query({
-      siteUrl: siteUrl,
-      requestBody: {
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
-        dimensions: ['date'],
-      },
-    });
+    const [timelineRes, queriesRes] = await Promise.all([
+      webmasters.searchanalytics.query({
+        siteUrl: siteUrl,
+        requestBody: {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          dimensions: ['date'],
+        },
+      }),
+      webmasters.searchanalytics.query({
+        siteUrl: siteUrl,
+        requestBody: {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          dimensions: ['query'],
+          rowLimit: 5,
+        },
+      })
+    ]);
     
-    return res.data.rows || [];
+    return {
+      timeline: timelineRes.data.rows || [],
+      topQueries: queriesRes.data.rows || []
+    };
   } catch (error) {
     console.error('❌ Google Search Console API Error:', error.message);
     return null;

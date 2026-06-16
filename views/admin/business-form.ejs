@@ -9,7 +9,12 @@
       <div class="form-card">
         <h3>Business Information</h3>
         <div class="form-group">
-          <label>Business Name *</label>
+          <label style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Business Name *</span>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:11px;background:#E8F0FE;color:#1A73E8;border-color:#1A73E8" onclick="runGoogleMapsAutofill()" id="autofillBtn">
+              <i class="ti ti-brand-google"></i> Auto-Fill from Maps
+            </button>
+          </label>
           <input type="text" name="name" value="<%= business ? business.name : '' %>" required>
         </div>
         <div class="form-row">
@@ -149,6 +154,47 @@
 </form>
 
 <script>
+async function runGoogleMapsAutofill() {
+  const nameInput = document.querySelector('[name=name]');
+  const query = nameInput.value;
+  const citySel = document.querySelector('[name=city_id]');
+  const city = citySel.options[citySel.selectedIndex]?.text;
+  
+  if(!query) {
+    return alert('Please enter a Business Name first to search.');
+  }
+
+  const btn = document.getElementById('autofillBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-loader"></i> Searching...';
+  btn.style.opacity = '0.7';
+
+  try {
+    const res = await fetch('/admin/api/places/autofill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, location: city === 'Select city' ? '' : city })
+    });
+    
+    const data = await res.json();
+    if(data.success && data.data) {
+      if(data.data.address) document.querySelector('[name=address]').value = data.data.address;
+      if(data.data.phone) document.querySelector('[name=phone]').value = data.data.phone;
+      if(data.data.website) document.querySelector('[name=website]').value = data.data.website;
+      if(data.data.rating) document.querySelector('[name=google_rating]').value = data.data.rating;
+      if(data.data.review_count) document.querySelector('[name=google_review_count]').value = data.data.review_count;
+      alert('✅ Successfully auto-filled details from Google Maps!');
+    } else {
+      alert('Failed: ' + (data.error || 'No business found.'));
+    }
+  } catch(e) {
+    alert('Error connecting to Maps API: ' + e.message);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.style.opacity = '1';
+  }
+}
+
 async function runAiGenerate() {
   const name = document.querySelector('[name=name]').value;
   const citySel = document.querySelector('[name=city_id]');
