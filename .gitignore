@@ -7,3 +7,4 @@ config/bbi.db-shm
 config/bbi.db-wal
 .DS_Store
 .env
+config/google-credentials.json
