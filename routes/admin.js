@@ -1218,6 +1218,75 @@ router.get('/csv-import/:id', requireAuth, (req, res) => {
 });
 
 // ============================================
+// AI LOGS
+// ============================================
+
+router.get('/ai-logs', requireAuth, (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 50;
+  const offset = (page - 1) * limit;
+  const status = req.query.status || '';
+  
+  let query = 'SELECT id, job_type, status, attempts, created_at, started_at, completed_at FROM ai_jobs';
+  const params = [];
+  
+  if (status) {
+    query += ' WHERE status = ?';
+    params.push(status);
+  }
+  
+  query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+  
+  const logs = db.prepare(query).all(...params);
+  
+  let countQuery = 'SELECT COUNT(*) as total FROM ai_jobs';
+  const countParams = [];
+  if (status) {
+    countQuery += ' WHERE status = ?';
+    countParams.push(status);
+  }
+  const total = db.prepare(countQuery).get(...countParams).total;
+  
+  res.render('admin/ai-logs', {
+    title: 'AI Logs',
+    logs,
+    page,
+    totalPages: Math.ceil(total / limit),
+    total,
+    status,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.get('/ai-logs/:id', requireAuth, (req, res) => {
+  const log = db.prepare('SELECT * FROM ai_jobs WHERE id = ?').get(req.params.id);
+  if (!log) {
+    req.flash('error', 'AI Job not found.');
+    return res.redirect('/admin/ai-logs');
+  }
+  res.render('admin/ai-job-detail', { 
+    title: `AI Job #${log.id}`, 
+    log,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.post('/ai-logs/:id/retry', requireAuth, (req, res) => {
+  db.prepare('UPDATE ai_jobs SET status = ?, attempts = 0, error = NULL WHERE id = ?').run('queued', req.params.id);
+  req.flash('success', 'AI Job queued for retry.');
+  res.redirect(`/admin/ai-logs/${req.params.id}`);
+});
+
+router.post('/ai-logs/:id/delete', requireAuth, (req, res) => {
+  db.prepare('DELETE FROM ai_jobs WHERE id = ?').run(req.params.id);
+  req.flash('success', 'AI Job deleted.');
+  res.redirect('/admin/ai-logs');
+});
+
+// ============================================
 // AUDIT LOGS
 // ============================================
 

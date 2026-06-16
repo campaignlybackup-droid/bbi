@@ -44,7 +44,8 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></noscript>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -62,6 +63,7 @@
   </div>
 </nav>
 
+<main id="main-content">
 <script>
   (function() {
     var btn = document.getElementById('nav-toggle-btn');

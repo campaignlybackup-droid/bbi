@@ -1,0 +1,82 @@
+<%- include('layout-top') %>
+
+<div class="header-action">
+  <div>
+    <h2 class="page-title">AI Processing Logs</h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-top:4px">Monitor all automated AI tasks, including SEO generation and content formatting.</p>
+  </div>
+</div>
+
+<% if(flash && flash.success) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%- flash.success %></div><% } %>
+<% if(flash && flash.error) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%- flash.error %></div><% } %>
+
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4)">
+  <form method="GET" action="/admin/ai-logs" style="display:flex;gap:var(--space-3);align-items:end;flex-wrap:wrap">
+    <div>
+      <label style="font-size:var(--font-size-xs);font-weight:600;display:block;margin-bottom:4px">Status</label>
+      <select name="status" class="form-control" style="min-width:150px">
+        <option value="">All Statuses</option>
+        <option value="queued" <%= status === 'queued' ? 'selected' : '' %>>Queued</option>
+        <option value="processing" <%= status === 'processing' ? 'selected' : '' %>>Processing</option>
+        <option value="completed" <%= status === 'completed' ? 'selected' : '' %>>Completed</option>
+        <option value="failed" <%= status === 'failed' ? 'selected' : '' %>>Failed</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="ti ti-filter"></i> Filter</button>
+    <a href="/admin/ai-logs" class="btn btn-outline btn-sm">Clear</a>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Job Type</th>
+        <th>Status</th>
+        <th>Attempts</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (logs.length === 0) { %>
+        <tr><td colspan="6" style="text-align:center;padding:var(--space-6);color:var(--text-muted)">No AI logs found.</td></tr>
+      <% } else { %>
+        <% logs.forEach(log => { %>
+          <tr>
+            <td>#<%= log.id %></td>
+            <td><strong><%= log.job_type %></strong></td>
+            <td>
+              <% if(log.status === 'completed') { %><span class="badge badge-verified">Completed</span><% } %>
+              <% if(log.status === 'failed') { %><span class="badge badge-danger" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">Failed</span><% } %>
+              <% if(log.status === 'queued') { %><span class="badge badge-sponsored">Queued</span><% } %>
+              <% if(log.status === 'processing') { %><span class="badge badge-blue">Processing</span><% } %>
+            </td>
+            <td><%= log.attempts %></td>
+            <td><%= new Date(log.created_at).toLocaleString() %></td>
+            <td>
+              <a href="/admin/ai-logs/<%= log.id %>" class="btn btn-sm btn-outline"><i class="ti ti-eye"></i> View Details</a>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<% if(totalPages > 1) { %>
+<div style="display:flex;justify-content:center;gap:var(--space-2);margin-top:var(--space-4)">
+  <% if(page > 1) { %>
+    <a href="/admin/ai-logs?page=<%= page - 1 %>&status=<%= status %>" class="btn btn-sm btn-outline">← Prev</a>
+  <% } %>
+  <span style="padding:4px 12px;font-size:var(--font-size-sm);color:var(--text-secondary)">
+    Page <%= page %> of <%= totalPages %>
+  </span>
+  <% if(page < totalPages) { %>
+    <a href="/admin/ai-logs?page=<%= page + 1 %>&status=<%= status %>" class="btn btn-sm btn-outline">Next →</a>
+  <% } %>
+</div>
+<% } %>
+
+<%- include('layout-bottom') %>

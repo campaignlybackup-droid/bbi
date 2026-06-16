@@ -111,17 +111,32 @@ function validateCSV(filePath) {
 
     // Required field: category
     if (!row.category || row.category.length < 2) {
-      rowErrors.push({ field: 'category', message: 'Category is required.' });
+      const defaultCategory = settingsService.getSetting('default_category');
+      if (defaultCategory) {
+        row.category = defaultCategory;
+      } else {
+        rowErrors.push({ field: 'category', message: 'Category is required.' });
+      }
     }
 
     // Required field: city
     if (!row.city || row.city.length < 2) {
-      rowErrors.push({ field: 'city', message: 'City is required.' });
+      const defaultCity = settingsService.getSetting('default_city');
+      if (defaultCity) {
+        row.city = defaultCity;
+      } else {
+        rowErrors.push({ field: 'city', message: 'City is required.' });
+      }
     }
 
     // Required field: state
     if (!row.state || row.state.length < 2) {
-      rowErrors.push({ field: 'state', message: 'State is required.' });
+      const defaultState = settingsService.getSetting('default_state');
+      if (defaultState) {
+        row.state = defaultState;
+      } else {
+        rowErrors.push({ field: 'state', message: 'State is required.' });
+      }
     }
 
     // Validate email
@@ -366,19 +381,21 @@ function executeImport(importId, adminId) {
     `).get(bizId);
 
     if (bInfo) {
-      // Enqueue comprehensive import content generation
-      jobQueue.enqueue('import_content_generate', {
-        business_id: bizId,
-        name: bInfo.name,
-        city_name: bInfo.city_name,
-        cat_name: bInfo.cat_name,
-        verified: bInfo.verified,
-        import_id: importId,
-      });
+      if (settingsService.getSetting('auto_ai_import', 'true') === 'true') {
+        // Enqueue comprehensive import content generation
+        jobQueue.enqueue('import_content_generate', {
+          business_id: bizId,
+          name: bInfo.name,
+          city_name: bInfo.city_name,
+          cat_name: bInfo.cat_name,
+          verified: bInfo.verified,
+          import_id: importId,
+        });
 
-      // Also enqueue standard listing + FAQ generation
-      jobQueue.enqueue('listing_generate', bInfo);
-      jobQueue.enqueue('faq_generate', bInfo);
+        // Also enqueue standard listing + FAQ generation
+        jobQueue.enqueue('listing_generate', bInfo);
+        jobQueue.enqueue('faq_generate', bInfo);
+      }
       
       // Ping Google Indexing API safely with staggering (200ms apart)
       if (settingsService.getSetting('auto_ping_indexing') === 'true') {

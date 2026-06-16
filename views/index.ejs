@@ -24,7 +24,7 @@
 <% if(topCategories && topCategories.length) { %>
 <div class="section">
   <div class="section-label">Browse by category</div>
-  <div class="section-title" style="margin-bottom:var(--space-5)">Popular categories</div>
+  <h2 class="section-title" style="margin-bottom:var(--space-5)">Popular categories</h2>
   <div class="cat-grid">
     <% topCategories.slice(0, 8).forEach(cat => { %>
     <a href="/category/<%= cat.slug %>" class="cat-card">
@@ -41,7 +41,7 @@
 <% if(featuredRankings && featuredRankings.length) { %>
 <div class="section section-lazy">
   <div class="section-label">Featured rankings</div>
-  <div class="section-title" style="margin-bottom:var(--space-5)">Top ranking pages</div>
+  <h2 class="section-title" style="margin-bottom:var(--space-5)">Top ranking pages</h2>
   <div class="rank-grid">
     <% featuredRankings.slice(0, 6).forEach(r => { %>
     <a href="/rankings/<%= r.city_slug %>/<%= r.cat_slug %>" class="ranking-page-card">
@@ -61,7 +61,7 @@
 <% if(typeof customRankings !== 'undefined' && customRankings.length) { %>
 <div class="section section-lazy">
   <div class="section-label">Custom Rankings</div>
-  <div class="section-title" style="margin-bottom:var(--space-5)">Featured lists</div>
+  <h2 class="section-title" style="margin-bottom:var(--space-5)">Featured lists</h2>
   <div class="related-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
     <% customRankings.forEach(cr => { %>
     <a href="/best/<%= cr.slug %>" class="rpc-card" style="display:flex;align-items:center;padding:16px;background:white;border:1px solid var(--border-light);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:all 0.2s">
@@ -79,21 +79,21 @@
 <%# === 4. WHY TRUST BBI === %>
 <div class="section section-lazy">
   <div class="section-label">Why trust BBI</div>
-  <div class="section-title" style="margin-bottom:var(--space-5)">How we ensure ranking integrity</div>
+  <h2 class="section-title" style="margin-bottom:var(--space-5)">How we ensure ranking integrity</h2>
   <div class="trust-grid">
     <div class="trust-card">
       <i class="ti ti-shield-check"></i>
-      <h4>Independent Rankings</h4>
+      <h3>Independent Rankings</h3>
       <p>Rankings are never influenced by payments. Sponsored listings are clearly labeled and never affect positions.</p>
     </div>
     <div class="trust-card">
       <i class="ti ti-chart-bar"></i>
-      <h4>Transparent Methodology</h4>
+      <h3>Transparent Methodology</h3>
       <p>Our scoring system is fully published. Every business can see exactly how their ranking is calculated.</p>
     </div>
     <div class="trust-card">
       <i class="ti ti-refresh"></i>
-      <h4>Updated Monthly</h4>
+      <h3>Updated Monthly</h3>
       <p>Fresh rankings on the 1st of every month based on the latest verified reviews and quality metrics.</p>
     </div>
   </div>
@@ -103,7 +103,7 @@
 <% if(topCities && topCities.length) { %>
 <div class="section section-lazy">
   <div class="section-label">Cities we cover</div>
-  <div class="section-title" style="margin-bottom:var(--space-5)">Top cities</div>
+  <h2 class="section-title" style="margin-bottom:var(--space-5)">Top cities</h2>
   <div class="city-grid">
     <% topCities.slice(0, 8).forEach(city => { %>
     <a href="/city/<%= city.slug || city.name.toLowerCase().replace(/ /g,'-') %>" class="city-card">

@@ -34,6 +34,7 @@
       <div class="sidebar-section">Insights</div>
       <a href="/admin/analytics" class="<%= currentPath.startsWith('/admin/analytics')?'active':'' %>"><i class="ti ti-chart-bar"></i> Analytics</a>
       <a href="/admin/audit-logs" class="<%= currentPath.startsWith('/admin/audit-logs')?'active':'' %>"><i class="ti ti-list-details"></i> Audit Logs</a>
+      <a href="/admin/ai-logs" class="<%= currentPath.startsWith('/admin/ai-logs')?'active':'' %>"><i class="ti ti-robot"></i> AI Logs</a>
       <div class="sidebar-section">System</div>
       <% if(admin.adminRole === 'superadmin') { %>
       <a href="/admin/settings" class="<%= currentPath.startsWith('/admin/settings')?'active':'' %>"><i class="ti ti-settings"></i> Global Settings</a>
