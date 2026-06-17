@@ -66,9 +66,14 @@ router.get('/', requireAuth, (req, res) => {
     businesses: db.prepare(`SELECT COUNT(*) as c FROM businesses WHERE active=1`).get().c,
     cities: db.prepare(`SELECT COUNT(*) as c FROM cities WHERE active=1`).get().c,
     categories: db.prepare(`SELECT COUNT(*) as c FROM categories WHERE active=1`).get().c,
-    rankings: db.prepare(`SELECT COUNT(*) as c FROM ranking_history`).get().c,
-    verified: db.prepare(`SELECT COUNT(*) as c FROM businesses WHERE verified=1`).get().c,
-    sponsored: db.prepare(`SELECT COUNT(*) as c FROM businesses WHERE sponsored=1`).get().c,
+    rankings: db.prepare(`
+      SELECT COUNT(*) as c FROM (
+        SELECT DISTINCT city_id, category_id 
+        FROM businesses WHERE active=1
+      )
+    `).get().c,
+    verified: db.prepare(`SELECT COUNT(*) as c FROM businesses WHERE verified=1 AND active=1`).get().c,
+    sponsored: db.prepare(`SELECT COUNT(*) as c FROM businesses WHERE sponsored=1 AND active=1`).get().c,
   };
 
   // Get inquiry and claim counts
@@ -1021,7 +1026,7 @@ router.post('/import/:cacheId/approve', requireAuth, (req, res) => {
 
     // AI Automation
     const bInfo = db.prepare(`
-      SELECT b.name, c.name as city_name, cat.name as cat_name 
+      SELECT b.name, c.name as city_name, c.slug as city_slug, cat.name as cat_name, cat.slug as cat_slug 
       FROM businesses b
       LEFT JOIN cities c ON c.id = b.city_id
       LEFT JOIN categories cat ON cat.id = b.category_id
@@ -1032,6 +1037,20 @@ router.post('/import/:cacheId/approve', requireAuth, (req, res) => {
         business_id: bizId,
         ...bInfo
       });
+
+      // Check and generate Combo SEO if it doesn't exist
+      const seoService = require('../services/seoService');
+      const comboSeo = seoService.getSeoContent('ranking', city_id, category_id);
+      if (!comboSeo || !comboSeo.editorial_content) {
+        jobQueue.enqueue('combo_seo_generate', {
+          city_id,
+          cat_id: category_id,
+          city_name: bInfo.city_name,
+          cat_name: bInfo.cat_name,
+          city_slug: bInfo.city_slug,
+          cat_slug: bInfo.cat_slug
+        });
+      }
     }
   } catch (e) {
     req.flash('error', e.message);
@@ -1063,7 +1082,7 @@ router.post('/import/bulk', requireAuth, async (req, res) => {
         searchService.updateFtsForBusiness(bizId);
 
         const bInfo = db.prepare(`
-          SELECT b.name, c.name as city_name, cat.name as cat_name 
+          SELECT b.name, c.name as city_name, c.slug as city_slug, cat.name as cat_name, cat.slug as cat_slug 
           FROM businesses b
           LEFT JOIN cities c ON c.id = b.city_id
           LEFT JOIN categories cat ON cat.id = b.category_id
@@ -1075,6 +1094,20 @@ router.post('/import/bulk', requireAuth, async (req, res) => {
             business_id: bizId,
             ...bInfo
           });
+
+          // Check and generate Combo SEO if it doesn't exist
+          const seoService = require('../services/seoService');
+          const comboSeo = seoService.getSeoContent('ranking', city_id, category_id);
+          if (!comboSeo || !comboSeo.editorial_content) {
+            jobQueue.enqueue('combo_seo_generate', {
+              city_id,
+              cat_id: category_id,
+              city_name: bInfo.city_name,
+              cat_name: bInfo.cat_name,
+              city_slug: bInfo.city_slug,
+              cat_slug: bInfo.cat_slug
+            });
+          }
         }
         successCount++;
       } catch (err) {

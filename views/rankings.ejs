@@ -2,6 +2,9 @@
 
 <script type="application/ld+json"><%- JSON.stringify(itemListSchema) %></script>
 <script type="application/ld+json"><%- JSON.stringify(breadcrumbSchema) %></script>
+<% if(typeof faqSchema !== 'undefined' && faqSchema) { %>
+<script type="application/ld+json"><%- JSON.stringify(faqSchema) %></script>
+<% } %>
 
 <div class="page-header">
   <div class="breadcrumb">
@@ -81,6 +84,32 @@
     <div style="font-size:var(--font-size-base);font-weight:600;color:var(--text-primary);margin-top:var(--space-3)">No rankings yet</div>
     <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-top:var(--space-1)">Rankings for this category in <%= city.name %> will appear after the next monthly update.</div>
   </div>
+  </div>
+  <% } %>
+
+  <!-- Editorial Content & FAQs (Auto-generated) -->
+  <% if(typeof seoContent !== 'undefined' && seoContent) { %>
+    <% if(seoContent.editorial_content) { %>
+    <div style="margin-top:var(--space-8); background: #f9fbfd; padding: var(--space-6); border-radius: 16px; border: 1px solid var(--border-light);">
+      <div class="article-content" style="line-height: 1.7; color: var(--text-secondary);">
+        <%- seoContent.editorial_content %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if(seoContent.faqs && seoContent.faqs.length > 0) { %>
+    <div style="margin-top:var(--space-8);">
+      <h2 style="font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: var(--space-4);">Frequently Asked Questions</h2>
+      <div class="faq-accordion">
+        <% seoContent.faqs.forEach(faq => { %>
+          <div class="faq-item" style="border-bottom: 1px solid var(--border-light); padding: var(--space-3) 0;">
+            <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0;"><%= faq.question %></h3>
+            <p style="font-size: 15px; color: var(--text-secondary); margin: 0; line-height: 1.5;"><%= faq.answer %></p>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
   <% } %>
 
   <!-- Related Rankings -->

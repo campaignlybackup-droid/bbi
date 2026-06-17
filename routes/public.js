@@ -184,13 +184,19 @@ router.get('/rankings/:citySlug/:catSlug', cacheMiddleware, (req, res) => {
   const relatedRankings = getRelatedRankings(city.id, cat.id);
 
   // SEO content
-  const seoContent = getSeoContent('ranking', city.id);
+  const seoContent = getSeoContent('ranking', city.id, cat.id);
+  
+  let faqSchema = null;
+  if (seoContent && seoContent.faqs && seoContent.faqs.length > 0) {
+    const { generateFaqSchema } = require('../services/seoService');
+    faqSchema = generateFaqSchema(seoContent.faqs);
+  }
 
   res.render('rankings', {
     city, cat, rankings: enriched, gainers, decliners, latest_date,
-    itemListSchema, breadcrumbSchema, relatedRankings, seoContent,
-    title: `Top ${cat.name} in ${city.name} — BBI Rankings`,
-    metaDescription: `${new Date().getFullYear()} rankings for the best ${cat.name} in ${city.name}. Independent, transparent rankings by Bharat Business Index.`,
+    itemListSchema, breadcrumbSchema, relatedRankings, seoContent, faqSchema,
+    title: seoContent && seoContent.title ? seoContent.title : `Top ${cat.name} in ${city.name} — BBI Rankings`,
+    metaDescription: seoContent && seoContent.meta_description ? seoContent.meta_description : `${new Date().getFullYear()} rankings for the best ${cat.name} in ${city.name}. Independent, transparent rankings by Bharat Business Index.`,
     canonicalUrl: `${BASE_URL}/rankings/${req.params.citySlug}/${req.params.catSlug}`,
   });
 });

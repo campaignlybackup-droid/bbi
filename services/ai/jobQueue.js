@@ -187,8 +187,45 @@ async function processNext(provider) {
                 WHERE import_id = ? AND business_id = ?
               `).run(importId, bizId);
             }
+
+            // Google Indexing API Ping
+            const settingsService = require('../../services/settingsService');
+            if (settingsService.getSetting('auto_ping_indexing') === 'true') {
+              const googleApiService = require('../../services/googleApiService');
+              const bizObj = db.prepare('SELECT slug FROM businesses WHERE id = ?').get(bizId);
+              if (bizObj && bizObj.slug) {
+                const url = `${process.env.BASE_URL || 'https://bharatbusinessindex.com'}/business/${bizObj.slug}`;
+                googleApiService.pingIndexingApi(url, 'URL_UPDATED').catch(console.error);
+              }
+            }
+
           } catch (postErr) {
             console.error('Import content post-processing failed:', postErr.message);
+          }
+        }
+        break;
+      case 'combo_seo_generate':
+        result = await provider.generateComboSeoContent(job.payload);
+        if (result && job.payload.city_id && job.payload.cat_id) {
+          try {
+            const seoService = require('../seoService');
+            seoService.saveSeoContent('ranking', job.payload.city_id, {
+              title: result.seo_title || '',
+              meta_description: result.meta_description || '',
+              editorial_content: result.editorial_content || '',
+              ai_summary: '',
+              faq_json: result.faqs ? JSON.stringify(result.faqs) : '[]',
+            }, job.payload.cat_id);
+
+            // Google Indexing API Ping for Combo Page
+            const settingsService = require('../../services/settingsService');
+            if (settingsService.getSetting('auto_ping_indexing') === 'true') {
+              const googleApiService = require('../../services/googleApiService');
+              const url = `${process.env.BASE_URL || 'https://bharatbusinessindex.com'}/rankings/${job.payload.city_slug}/${job.payload.cat_slug}`;
+              googleApiService.pingIndexingApi(url, 'URL_UPDATED').catch(console.error);
+            }
+          } catch (postErr) {
+            console.error('Combo SEO post-processing failed:', postErr.message);
           }
         }
         break;

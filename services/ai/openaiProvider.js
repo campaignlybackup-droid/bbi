@@ -368,6 +368,47 @@ Return EXACTLY a JSON object with this structure:
   }
 }
 
+/**
+ * Generate deep SEO content for a City + Category Ranking Page
+ */
+async function generateComboSeoContent(payload) {
+  const { city_name, cat_name } = payload;
+
+  const prompt = `You are writing content for Bharat Business Index (BBI), India's premier independent business ranking platform.
+
+Generate fully SEO-optimized content for a ranking page targeting: "Top ${cat_name} in ${city_name}".
+
+STRICT RULES:
+- Write in a highly authoritative, independent, third-person editorial voice.
+- Never use "we", "our", "us", "you", or "your".
+- BBI ranks businesses based on reviews, verification, completeness, and online presence.
+- Must optimize for Local SEO and AEO (Answer Engine Optimization) by including relevant long-tail search intent terms.
+
+Return EXACTLY a JSON object with this structure:
+{
+  "seo_title": "string (under 60 chars, compelling SEO title)",
+  "meta_description": "string (under 155 chars, high CTR hook)",
+  "editorial_content": "string (300-400 words, HTML formatted with <h2> and <p>, objective analysis of the ${cat_name} industry in ${city_name} and what makes top businesses stand out)",
+  "faqs": [
+    {"question": "How does BBI rank the best ${cat_name} in ${city_name}?", "answer": "string"},
+    {"question": "string (highly relevant local SEO question)", "answer": "string"},
+    {"question": "string (highly relevant local SEO question)", "answer": "string"}
+  ]
+}`;
+
+  try {
+    return await generateText(prompt);
+  } catch (e) {
+    // Basic fallback if AI fails
+    return {
+      seo_title: \`Top \${cat_name} in \${city_name} | BBI Rankings\`,
+      meta_description: \`Discover the highest-rated \${cat_name} in \${city_name}. Compare reviews, rankings, and find the best local options on Bharat Business Index.\`,
+      editorial_content: \`<p>Bharat Business Index provides independent, data-driven rankings for \${cat_name} in \${city_name} based on customer reviews, online presence, and transparency.</p>\`,
+      faqs: []
+    };
+  }
+}
+
 module.exports = {
   generateListingContent,
   generateFaqContent,
@@ -382,5 +423,6 @@ module.exports = {
   generateBlogSummary,
   generateDigestSummary,
   generateImportContent,
+  generateComboSeoContent,
 };
 
