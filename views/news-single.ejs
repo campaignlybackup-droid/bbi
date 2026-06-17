@@ -1,0 +1,29 @@
+<%- include('partials/header') %>
+
+<div class="section" style="max-width: 800px; margin: 0 auto; padding: var(--space-8) var(--space-4);">
+  
+  <article class="card" style="padding: var(--space-8); border-top: 4px solid var(--accent-color);">
+    <div style="font-size:var(--font-size-sm);color:var(--accent-color);font-weight:600;margin-bottom:var(--space-2)">
+      Published on <%= new Date(newsItem.created_at).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) %>
+    </div>
+    
+    <h1 style="margin:0 0 var(--space-6) 0;font-size:42px;line-height:1.2;color:var(--text-primary)"><%= newsItem.title %></h1>
+    
+    <% if (newsItem.image) { %>
+      <div style="width:100%;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:var(--space-6);background:var(--bg-color)">
+        <img src="<%= newsItem.image %>" alt="<%= newsItem.title %>" style="width:100%;height:auto;display:block">
+      </div>
+    <% } %>
+    
+    <div class="content-body" style="font-size:var(--font-size-lg);line-height:1.8;color:var(--text-secondary)">
+      <%- newsItem.content %>
+    </div>
+  </article>
+  
+  <div style="margin-top:var(--space-8);text-align:center">
+    <a href="/news" class="btn btn-outline"><i class="ti ti-arrow-left"></i> Back to News</a>
+  </div>
+
+</div>
+
+<%- include('partials/footer') %>

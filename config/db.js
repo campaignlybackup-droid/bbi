@@ -48,6 +48,20 @@ db.exec(`
   )
 `);
 
+// Create news table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS news (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    content TEXT,
+    image TEXT,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 /**
  * Run multiple statements in a transaction.
  * @param {Function} fn - Function receiving the db instance

@@ -129,11 +129,11 @@ router.get('/businesses', requireAuth, (req, res) => {
 router.get('/businesses/new', requireAuth, (req, res) => {
   const cities = db.prepare(`SELECT * FROM cities WHERE active=1 ORDER BY name`).all();
   const categories = db.prepare(`SELECT * FROM categories WHERE active=1 ORDER BY name`).all();
-  res.render('admin/business-form', { business: null, scores: null, cities, categories, title: 'Add Business', admin: req.session, flash: { error: req.flash('error') } });
+  res.render('admin/business-form', { business: null, scores: null, cities, categories, faqs: [], title: 'Add Business', admin: req.session, flash: { error: req.flash('error') } });
 });
 
 router.post('/businesses', requireAuth, (req, res) => {
-  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, tags, custom_attributes } = req.body;
+  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, tags, custom_attributes, faqs_json } = req.body;
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   try {
     const bizId = db.prepare(`
@@ -142,6 +142,16 @@ router.post('/businesses', requireAuth, (req, res) => {
     `).run(name, slug, category_id, city_id, address, phone, website, description,
       parseFloat(google_rating)||0, parseInt(google_review_count)||0, verified?1:0, sponsored?1:0, tags||'', custom_attributes||'[]'
     ).lastInsertRowid;
+
+    if (faqs_json) {
+      try {
+        const faqs = JSON.parse(faqs_json);
+        const insertFaq = db.prepare(`INSERT INTO faqs (page_type, entity_id, question, answer, sort_order, active) VALUES ('business', ?, ?, ?, ?, 1)`);
+        faqs.forEach((faq, idx) => {
+          if (faq.question && faq.answer) insertFaq.run(bizId, faq.question, faq.answer, idx);
+        });
+      } catch (e) { console.error('FAQ insertion error:', e); }
+    }
 
     const components = calculateScoreComponents({
       website, verified: verified?1:0, description, phone, address,
@@ -211,18 +221,30 @@ router.get('/businesses/:id/edit', requireAuth, (req, res) => {
   const scores = db.prepare(`SELECT * FROM ranking_scores WHERE business_id=?`).get(req.params.id);
   const cities = db.prepare(`SELECT * FROM cities WHERE active=1 ORDER BY name`).all();
   const categories = db.prepare(`SELECT * FROM categories WHERE active=1 ORDER BY name`).all();
+  const faqs = require('../services/faqService').getFaqs('business', req.params.id) || [];
   if (!business) return res.redirect('/admin/businesses');
-  res.render('admin/business-form', { business, scores, cities, categories, title: 'Edit Business', admin: req.session, flash: { error: req.flash('error') } });
+  res.render('admin/business-form', { business, scores, cities, categories, faqs, title: 'Edit Business', admin: req.session, flash: { error: req.flash('error') } });
 });
 
 router.post('/businesses/:id', requireAuth, (req, res) => {
-  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, editorial_score, manual_boost, tags, custom_attributes } = req.body;
+  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, editorial_score, manual_boost, tags, custom_attributes, faqs_json } = req.body;
   db.prepare(`
     UPDATE businesses SET name=?,category_id=?,city_id=?,address=?,phone=?,website=?,description=?,
     google_rating=?,google_review_count=?,verified=?,sponsored=?,tags=?,custom_attributes=?,updated_at=CURRENT_TIMESTAMP
     WHERE id=?
   `).run(name, category_id, city_id, address, phone, website, description,
     parseFloat(google_rating)||0, parseInt(google_review_count)||0, verified?1:0, sponsored?1:0, tags||'', custom_attributes||'[]', req.params.id);
+
+  if (faqs_json) {
+    try {
+      const faqs = JSON.parse(faqs_json);
+      db.prepare(`DELETE FROM faqs WHERE page_type='business' AND entity_id=?`).run(req.params.id);
+      const insertFaq = db.prepare(`INSERT INTO faqs (page_type, entity_id, question, answer, sort_order, active) VALUES ('business', ?, ?, ?, ?, 1)`);
+      faqs.forEach((faq, idx) => {
+        if (faq.question && faq.answer) insertFaq.run(req.params.id, faq.question, faq.answer, idx);
+      });
+    } catch (e) { console.error('FAQ update error:', e); }
+  }
 
   // M-06: Fix — properly calculate and save all score components including manual_boost
   const components = calculateScoreComponents({
@@ -842,6 +864,58 @@ router.post('/blog/:id/delete', requireAuth, (req, res) => {
 });
 
 // ============================================
+// NEWS
+// ============================================
+const newsService = require('../services/newsService');
+
+router.get('/news', requireAuth, (req, res) => {
+  const newsList = newsService.getAllNews();
+  res.render('admin/news-list', { newsList, title: 'Manage News', admin: req.session, flash: { success: req.flash('success') } });
+});
+
+router.get('/news/new', requireAuth, (req, res) => {
+  res.render('admin/news-form', { newsItem: null, title: 'Add News', admin: req.session, flash: { error: req.flash('error') } });
+});
+
+router.post('/news', requireAuth, (req, res) => {
+  try {
+    newsService.createNews(req.body);
+    req.flash('success', 'News article created.');
+    res.redirect('/admin/news');
+  } catch (e) {
+    req.flash('error', e.message);
+    res.redirect('/admin/news/new');
+  }
+});
+
+router.get('/news/:id/edit', requireAuth, (req, res) => {
+  const newsItem = newsService.getNewsById(req.params.id);
+  if (!newsItem) return res.redirect('/admin/news');
+  res.render('admin/news-form', { newsItem, title: 'Edit News', admin: req.session, flash: { error: req.flash('error') } });
+});
+
+router.post('/news/:id', requireAuth, (req, res) => {
+  try {
+    newsService.updateNews(req.params.id, req.body);
+    req.flash('success', 'News article updated.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/news');
+});
+
+router.post('/news/:id/toggle', requireAuth, (req, res) => {
+  newsService.toggleNews(req.params.id);
+  res.redirect('/admin/news');
+});
+
+router.post('/news/:id/delete', requireAuth, (req, res) => {
+  newsService.deleteNews(req.params.id);
+  req.flash('success', 'News article deleted.');
+  res.redirect('/admin/news');
+});
+
+// ============================================
 // FAQS
 // ============================================
 router.get('/faqs', requireAuth, (req, res) => {
@@ -954,9 +1028,61 @@ router.post('/import/:cacheId/approve', requireAuth, (req, res) => {
       WHERE b.id = ?
     `).get(bizId);
     if (bInfo) {
-      jobQueue.enqueue('listing_generate', bInfo);
-      jobQueue.enqueue('faq_generate', bInfo);
+      jobQueue.enqueue('import_content_generate', {
+        business_id: bizId,
+        ...bInfo
+      });
     }
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/import');
+});
+
+// ============================================
+// BULK GOOGLE PLACES IMPORT
+// ============================================
+router.post('/import/bulk', requireAuth, async (req, res) => {
+  try {
+    const { place_ids, city_id, category_id } = req.body;
+    
+    if (!place_ids || !city_id || !category_id) {
+      req.flash('error', 'Please select places, city, and category.');
+      return res.redirect('/admin/import');
+    }
+
+    const ids = Array.isArray(place_ids) ? place_ids : [place_ids];
+    let successCount = 0;
+    
+    for (const placeId of ids) {
+      try {
+        const cachedPlace = await placesService.importPlace(placeId);
+        const bizId = placesService.approveImport(cachedPlace.id, city_id, category_id);
+        
+        const searchService = require('../services/searchService');
+        searchService.updateFtsForBusiness(bizId);
+
+        const bInfo = db.prepare(`
+          SELECT b.name, c.name as city_name, cat.name as cat_name 
+          FROM businesses b
+          LEFT JOIN cities c ON c.id = b.city_id
+          LEFT JOIN categories cat ON cat.id = b.category_id
+          WHERE b.id = ?
+        `).get(bizId);
+        
+        if (bInfo) {
+          jobQueue.enqueue('import_content_generate', {
+            business_id: bizId,
+            ...bInfo
+          });
+        }
+        successCount++;
+      } catch (err) {
+        console.error('Bulk import error for place:', placeId, err.message);
+      }
+    }
+
+    req.flash('success', `Successfully imported ${successCount} businesses and queued for AI content generation!`);
   } catch (e) {
     req.flash('error', e.message);
   }

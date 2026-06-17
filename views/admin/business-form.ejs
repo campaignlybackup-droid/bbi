@@ -85,6 +85,28 @@
       </div>
 
       <div class="form-card">
+        <h3><i class="ti ti-help" style="margin-right:4px"></i> Business FAQs</h3>
+        <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Manage Frequently Asked Questions for this business.</p>
+        
+        <div id="faqContainer">
+          <% if (typeof faqs !== 'undefined' && faqs.length) { %>
+            <% faqs.forEach(function(faq, idx) { %>
+            <div class="attr-row" style="flex-direction:column; align-items:stretch; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light);">
+              <input type="text" placeholder="Question" class="faq-q" value="<%= faq.question || '' %>">
+              <textarea placeholder="Answer" class="faq-a" rows="2" style="resize:vertical"><%= faq.answer || '' %></textarea>
+              <button type="button" class="btn btn-sm btn-outline text-danger" style="align-self:flex-end;" onclick="this.parentElement.remove();syncFaqs()">Remove FAQ</button>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        
+        <button type="button" class="attr-add-btn" onclick="addFaqRow()">
+          <i class="ti ti-plus"></i> Add FAQ
+        </button>
+        <input type="hidden" name="faqs_json" id="faqsField" value="<%= typeof faqs !== 'undefined' ? JSON.stringify(faqs) : '[]' %>">
+      </div>
+
+      <div class="form-card">
         <h3>Review Data</h3>
         <div class="form-row">
           <div class="form-group">
@@ -285,11 +307,40 @@ function syncAttrs() {
   document.getElementById('customAttrsField').value = JSON.stringify(attrs);
 }
 
+// === FAQs ===
+function addFaqRow(q, a) {
+  var container = document.getElementById('faqContainer');
+  var row = document.createElement('div');
+  row.className = 'attr-row';
+  row.style.cssText = 'flex-direction:column; align-items:stretch; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light);';
+  row.innerHTML = '<input type="text" placeholder="Question" class="faq-q" value="' + (q || '') + '">' +
+    '<textarea placeholder="Answer" class="faq-a" rows="2" style="resize:vertical">' + (a || '') + '</textarea>' +
+    '<button type="button" class="btn btn-sm btn-outline text-danger" style="align-self:flex-end;" onclick="this.parentElement.remove();syncFaqs()">Remove FAQ</button>';
+  container.appendChild(row);
+  row.querySelector('.faq-q').focus();
+  syncFaqs();
+}
+
+function syncFaqs() {
+  var rows = document.querySelectorAll('#faqContainer .attr-row');
+  var faqs = [];
+  rows.forEach(function(row) {
+    var q = row.querySelector('.faq-q').value.trim();
+    var a = row.querySelector('.faq-a').value.trim();
+    if (q && a) faqs.push({ question: q, answer: a });
+  });
+  document.getElementById('faqsField').value = JSON.stringify(faqs);
+}
+
 // Sync on input change
 document.getElementById('attrContainer').addEventListener('input', syncAttrs);
+document.getElementById('faqContainer').addEventListener('input', syncFaqs);
 
 // Sync before form submit
-document.querySelector('form').addEventListener('submit', syncAttrs);
+document.querySelector('form').addEventListener('submit', function() {
+  syncAttrs();
+  syncFaqs();
+});
 </script>
 
 <%- include('layout-bottom') %>

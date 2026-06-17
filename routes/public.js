@@ -566,4 +566,43 @@ router.get('/best-:catSlug-near-me', cacheMiddleware, (req, res) => {
   });
 });
 
+// ============================================
+// NEWS SECTION
+// ============================================
+const newsService = require('../services/newsService');
+
+router.get('/news', cacheMiddleware, (req, res) => {
+  const newsList = newsService.getAllNews(true); // activeOnly = true
+  
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'News' },
+  ]);
+
+  res.render('news', {
+    newsList, breadcrumbSchema,
+    title: 'Daily News — Bharat Business Index',
+    metaDescription: 'Read the latest daily news and updates from Bharat Business Index.',
+    canonicalUrl: `${BASE_URL}/news`,
+  });
+});
+
+router.get('/news/:slug', cacheMiddleware, (req, res) => {
+  const newsItem = newsService.getNewsBySlug(req.params.slug);
+  if (!newsItem) return res.status(404).render('404', { title: 'Not Found' });
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'News', url: '/news' },
+    { name: newsItem.title },
+  ]);
+
+  res.render('news-single', {
+    newsItem, breadcrumbSchema,
+    title: `${newsItem.title} — BBI News`,
+    metaDescription: newsItem.content.substring(0, 150).replace(/<[^>]+>/g, '') + '...',
+    canonicalUrl: `${BASE_URL}/news/${newsItem.slug}`,
+  });
+});
+
 module.exports = router;
