@@ -401,9 +401,9 @@ Return EXACTLY a JSON object with this structure:
   } catch (e) {
     // Basic fallback if AI fails
     return {
-      seo_title: \`Top \${cat_name} in \${city_name} | BBI Rankings\`,
-      meta_description: \`Discover the highest-rated \${cat_name} in \${city_name}. Compare reviews, rankings, and find the best local options on Bharat Business Index.\`,
-      editorial_content: \`<p>Bharat Business Index provides independent, data-driven rankings for \${cat_name} in \${city_name} based on customer reviews, online presence, and transparency.</p>\`,
+      seo_title: `Top ${cat_name} in ${city_name} | BBI Rankings`,
+      meta_description: `Discover the highest-rated ${cat_name} in ${city_name}. Compare reviews, rankings, and find the best local options on Bharat Business Index.`,
+      editorial_content: `<p>Bharat Business Index provides independent, data-driven rankings for ${cat_name} in ${city_name} based on customer reviews, online presence, and transparency.</p>`,
       faqs: []
     };
   }
