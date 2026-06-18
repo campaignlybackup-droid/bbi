@@ -156,7 +156,9 @@ function recalculateRankings(city_id, category_id) {
     };
   });
 
-  scored.sort((a, b) => {
+  const rankedBusinesses = scored.filter(b => b.is_ranked !== 0);
+
+  rankedBusinesses.sort((a, b) => {
     if (a.strict_rank !== null && b.strict_rank !== null) return a.strict_rank - b.strict_rank;
     if (a.strict_rank !== null) return -1;
     if (b.strict_rank !== null) return 1;
@@ -187,8 +189,13 @@ function recalculateRankings(city_id, category_id) {
   `);
 
   const transaction = db.transaction(() => {
-    scored.forEach((b, i) => {
+    // Only insert into history for ranked businesses
+    rankedBusinesses.forEach((b, i) => {
       insertHistory.run(b.id, city_id, category_id, i + 1, b.final_score, b.auto_score, b.manual_boost, today);
+    });
+
+    // Update scores for ALL businesses (both ranked and unranked)
+    scored.forEach(b => {
       updateScore.run(
         b.id, b.review_score, b.volume_score, b.website_score,
         b.completeness_score, b.verified_score, b.editorial_score,
@@ -198,7 +205,7 @@ function recalculateRankings(city_id, category_id) {
   });
 
   transaction();
-  return scored;
+  return rankedBusinesses;
 }
 
 /**

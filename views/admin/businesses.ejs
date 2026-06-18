@@ -38,6 +38,7 @@
         <td style="font-size:13px;font-weight:600"><%= b.final_score ? Math.round(b.final_score) : '—' %></td>
         <td>
           <% if(b.verified) { %><span class="tag-verified">Verified</span><% } %>
+          <% if(b.is_ranked === 0) { %><span style="background:#e2e8f0;color:#4a5568;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;margin-left:4px">Unranked</span><% } %>
         </td>
         <td>
           <div style="display:flex;gap:6px">

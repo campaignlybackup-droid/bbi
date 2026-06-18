@@ -199,6 +199,12 @@ async function processNext(provider) {
               }
             }
 
+            // Trigger Ranking Recalculation so it instantly appears on the combo page
+            if (job.payload.city_id && job.payload.category_id) {
+              const rankingService = require('../rankingService');
+              rankingService.recalculateRankings(job.payload.city_id, job.payload.category_id);
+            }
+
           } catch (postErr) {
             console.error('Import content post-processing failed:', postErr.message);
           }

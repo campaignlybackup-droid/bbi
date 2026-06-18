@@ -138,14 +138,14 @@ router.get('/businesses/new', requireAuth, (req, res) => {
 });
 
 router.post('/businesses', requireAuth, (req, res) => {
-  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, tags, custom_attributes, faqs_json } = req.body;
+  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, is_ranked, tags, custom_attributes, faqs_json } = req.body;
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   try {
     const bizId = db.prepare(`
-      INSERT INTO businesses (name,slug,category_id,city_id,address,phone,website,description,google_rating,google_review_count,verified,sponsored,tags,custom_attributes)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO businesses (name,slug,category_id,city_id,address,phone,website,description,google_rating,google_review_count,verified,sponsored,is_ranked,tags,custom_attributes)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(name, slug, category_id, city_id, address, phone, website, description,
-      parseFloat(google_rating)||0, parseInt(google_review_count)||0, verified?1:0, sponsored?1:0, tags||'', custom_attributes||'[]'
+      parseFloat(google_rating)||0, parseInt(google_review_count)||0, verified?1:0, sponsored?1:0, is_ranked?1:0, tags||'', custom_attributes||'[]'
     ).lastInsertRowid;
 
     if (faqs_json) {
@@ -232,13 +232,13 @@ router.get('/businesses/:id/edit', requireAuth, (req, res) => {
 });
 
 router.post('/businesses/:id', requireAuth, (req, res) => {
-  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, editorial_score, manual_boost, tags, custom_attributes, faqs_json } = req.body;
+  const { name, category_id, city_id, address, phone, website, description, google_rating, google_review_count, verified, sponsored, is_ranked, editorial_score, manual_boost, tags, custom_attributes, faqs_json } = req.body;
   db.prepare(`
     UPDATE businesses SET name=?,category_id=?,city_id=?,address=?,phone=?,website=?,description=?,
-    google_rating=?,google_review_count=?,verified=?,sponsored=?,tags=?,custom_attributes=?,updated_at=CURRENT_TIMESTAMP
+    google_rating=?,google_review_count=?,verified=?,sponsored=?,is_ranked=?,tags=?,custom_attributes=?,updated_at=CURRENT_TIMESTAMP
     WHERE id=?
   `).run(name, category_id, city_id, address, phone, website, description,
-    parseFloat(google_rating)||0, parseInt(google_review_count)||0, verified?1:0, sponsored?1:0, tags||'', custom_attributes||'[]', req.params.id);
+    parseFloat(google_rating)||0, parseInt(google_review_count)||0, verified?1:0, sponsored?1:0, is_ranked?1:0, tags||'', custom_attributes||'[]', req.params.id);
 
   if (faqs_json) {
     try {

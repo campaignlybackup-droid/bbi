@@ -38,6 +38,7 @@ try { db.exec('ALTER TABLE businesses ADD COLUMN import_id INTEGER'); } catch (e
 try { db.exec('ALTER TABLE businesses ADD COLUMN bbi_score REAL DEFAULT 0'); } catch (e) {}
 try { db.exec('ALTER TABLE businesses ADD COLUMN latitude REAL'); } catch (e) {}
 try { db.exec('ALTER TABLE businesses ADD COLUMN longitude REAL'); } catch (e) {}
+try { db.exec('ALTER TABLE businesses ADD COLUMN is_ranked INTEGER DEFAULT 1'); } catch (e) {}
 
 // Create global site settings table
 db.exec(`

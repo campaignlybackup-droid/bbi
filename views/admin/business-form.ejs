@@ -136,6 +136,12 @@
             Sponsored Listing
           </label>
         </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px">
+            <input type="checkbox" name="is_ranked" <%= (!business || business.is_ranked !== 0) ? 'checked':'' %> style="width:auto">
+            Is Ranked (Show on Ranking Pages)
+          </label>
+        </div>
       </div>
 
       <div class="form-card">
