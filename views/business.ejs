@@ -13,75 +13,37 @@
   <h1><%= business.name %></h1>
   <p>
     <%= business.cat_name %> · <%= business.city_name %>
-    <% if(business.verified) { %> · <span class="tag-verified tooltip" style="vertical-align:middle">BBI Verified<span class="tooltip-text">This business has been independently verified by the BBI editorial team for authenticity.</span></span><% } %>
+    <% if(business.verified) { %> · <span class="tag-verified" style="vertical-align:middle">BBI Verified</span><% } %>
     <% if(business.claimed) { %> · <span class="tag-claimed" style="vertical-align:middle">Claimed</span><% } %>
   </p>
 </div>
 
 <div class="section">
 
-  <!-- Hero Score Card -->
-  <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm);">
-    <div style="flex: 1; min-width: 250px;">
-      <div style="font-size: var(--font-size-sm); color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: var(--space-2);">Current Status</div>
-      <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2);">
-        <div style="font-size: 36px; font-weight: 800; color: var(--navy); line-height: 1;"><% if(latest) { %>#<%= latest.rank_position %><% } else { %>Unranked<% } %></div>
-        <div style="font-size: var(--font-size-md); color: var(--text-secondary);">in <%= business.cat_name %></div>
-      </div>
-      <% if(latest) { %>
-      <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
-        <% if(movement) { %><span class="move move-<%= movement.direction %>"><%= movement.label %></span><% } %>
-        <% if(badge) { %><span class="badge badge-gold"><%= badge %></span><% } %>
-      </div>
-      <% } %>
-    </div>
-
-    <div style="flex: 1; min-width: 250px;">
-      <div style="font-size: var(--font-size-sm); color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: var(--space-2);">BBI Score</div>
-      <% if(scores) { %>
-      <div style="font-size: 36px; font-weight: 800; color: var(--text-primary); line-height: 1; margin-bottom: var(--space-2);"><%= Math.round(scores.final_score) %><span style="font-size: 20px; color: var(--text-muted); font-weight: 500;">/100</span></div>
-      <% } else { %>
-      <div style="font-size: 24px; font-weight: 600; color: var(--text-muted);">Pending</div>
-      <% } %>
-      <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">Updated <%= latest ? latest.ranking_date.slice(0,7) : 'recently' %></div>
-    </div>
-
-    <!-- Rank History Sparkline -->
-    <% if(history && history.length > 1) { 
-      const recentHistory = history.slice(-6); // last 6 months
-      const maxRank = Math.max(...recentHistory.map(h => h.rank_position));
-      const minRank = Math.max(1, Math.min(...recentHistory.map(h => h.rank_position)) - 5);
-      const range = Math.max(1, maxRank - minRank);
-      const width = 120; const height = 40;
-      const points = recentHistory.map((h, i) => {
-        const x = (i / Math.max(1, recentHistory.length - 1)) * width;
-        const y = height - (((maxRank - h.rank_position) / range) * height);
-        return `${x},${y}`;
-      }).join(' ');
-    %>
-    <div style="flex: 1; min-width: 150px;">
-      <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 8px;">6-Month Trend</div>
-      <svg width="120" height="40" viewBox="0 0 120 40" style="overflow: visible;">
-        <polyline points="<%= points %>" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        <% recentHistory.forEach((h, i) => {
-          const x = (i / Math.max(1, recentHistory.length - 1)) * width;
-          const y = height - (((maxRank - h.rank_position) / range) * height);
-        %>
-        <circle cx="<%= x %>" cy="<%= y %>" r="3" fill="var(--gold)" stroke="#fff" stroke-width="1.5" />
-        <% }) %>
-      </svg>
-    </div>
+  <% if(latest) { %>
+  <div class="ai-statement">
+    <strong style="color:var(--text-primary)"><%= business.name %></strong> is currently ranked
+    <strong style="color:var(--navy)">#<%= latest.rank_position %></strong> among <%= business.cat_name %> in <%= business.city_name %>
+    according to Bharat Business Index's <%= latest.ranking_date.slice(0,7) %> rankings.
+    This ranking is based on review ratings, customer feedback, online reputation, business completeness, and editorial assessment.
+    <% if(movement) { %>
+    <span class="move move-<%= movement.direction %>" style="margin-left:4px"><%= movement.label %></span>
+    <% } %>
+    <% if(badge) { %>
+    <span class="badge badge-gold" style="margin-left:4px"><%= badge %></span>
     <% } %>
   </div>
+  <% } %>
 
   <div class="profile-grid">
+
     <div>
-      <!-- Score breakdown (Prominent) -->
+      <!-- Score breakdown (M-03: real values) -->
       <% if(scores) { %>
-      <div class="profile-card" style="border-top: 4px solid var(--navy);">
-        <div class="profile-card-title" style="font-size: var(--font-size-lg);">Score Breakdown</div>
-        <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-4);">Our algorithm calculates scores based on a strict, mathematical formula.</p>
-        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+      <div class="profile-card">
+        <div class="profile-card-title">
+          Ranking Score: <strong><%= Math.round(scores.final_score) %></strong> / 100
+        </div>
         <% const factors = [
           ['Customer Reviews', scores.review_score || 0, 35],
           ['Review Volume', scores.volume_score || 0, 25],
@@ -90,20 +52,13 @@
           ['Profile Completeness', scores.completeness_score || 0, 10],
           ['Editorial Score', scores.editorial_score || 0, 15]
         ]; %>
-        <% factors.forEach(([label, val, max]) => { 
-             const pct = max > 0 ? (val/max*100) : 0;
-        %>
-        <div>
-          <div style="display: flex; justify-content: space-between; font-size: var(--font-size-sm); font-weight: 600; margin-bottom: 4px;">
-            <span><%= label %></span>
-            <span style="color: var(--text-secondary);"><%= Math.round(val) %> / <%= max %></span>
-          </div>
-          <div style="background: var(--bg); height: 8px; border-radius: 4px; overflow: hidden;">
-            <div style="background: <%= pct > 80 ? 'var(--success)' : pct > 50 ? 'var(--gold)' : 'var(--navy)' %>; height: 100%; width: <%= pct %>%; border-radius: 4px; transition: width 0.5s ease;"></div>
-          </div>
+        <% factors.forEach(([label, val, max]) => { %>
+        <div class="score-row">
+          <div class="score-row-label"><%= label %></div>
+          <div class="score-row-bar"><div class="score-row-bar-fill" style="width:<%= max > 0 ? (val/max*100) : 0 %>%"></div></div>
+          <div class="score-row-value"><%= Math.round(val) %> / <%= max %></div>
         </div>
         <% }) %>
-        </div>
       </div>
       <% } %>
 
@@ -188,9 +143,6 @@
       <!-- Actions -->
       <div class="profile-card">
         <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-          <button onclick="shareRank()" class="btn btn-primary btn-block">
-            <i class="ti ti-share"></i> Share Your Rank
-          </button>
           <a href="/business/<%= business.slug %>/claim" class="btn btn-outline btn-block">
             <i class="ti ti-shield-check"></i> Claim This Business
           </a>
@@ -202,23 +154,6 @@
           </a>
         </div>
       </div>
-      
-      <script>
-      function shareRank() {
-        const title = "We're ranked <% if(latest) { %>#<%= latest.rank_position %><% } %> on Bharat Business Index!";
-        const text = "Check out our official BBI ranking for <%= business.cat_name %> in <%= business.city_name %>.";
-        const url = window.location.href;
-        
-        if (navigator.share) {
-          navigator.share({ title, text, url })
-            .catch(console.error);
-        } else {
-          navigator.clipboard.writeText(`${title} ${url}`).then(() => {
-            alert('Link copied to clipboard!');
-          });
-        }
-      }
-      </script>
 
       <!-- Ranking history -->
       <% if(history.length) { %>

@@ -11,8 +11,6 @@
   <p><%= page.description %></p>
 </div>
 
-<%- include('partials/trust-banner') %>
-
 <div class="section">
 
   <!-- Rankings list as cards on mobile -->
@@ -25,7 +23,7 @@
       <div class="biz-name">
         <%= b.name %>
         <% if(b.sponsored) { %><span class="tag-sponsored" style="margin-left:6px">Sponsored</span><% } %>
-        <% if(b.verified) { %><span class="tag-verified tooltip" style="margin-left:4px">Verified<span class="tooltip-text">This business has been independently verified by the BBI editorial team for authenticity.</span></span><% } %>
+        <% if(b.verified) { %><span class="tag-verified" style="margin-left:4px">Verified</span><% } %>
       </div>
       <div class="biz-loc"><%= b.address || b.city_name %></div>
       <% if(b.google_rating) { %>

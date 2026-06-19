@@ -6,8 +6,6 @@
 <script type="application/ld+json"><%- JSON.stringify(faqSchema) %></script>
 <% } %>
 
-<%- include('partials/trust-banner') %>
-
 <div class="page-header">
   <div class="breadcrumb">
     <a href="/">Home</a> <span>/</span>
@@ -15,7 +13,7 @@
     <%= cat.name %>
   </div>
   <h1>Top <%= cat.name %> in <%= city.name %></h1>
-  <p>Rankings last updated: <strong><%= latest_date ? new Date(latest_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently' %></strong> · <%= rankings.length %> businesses ranked</p>
+  <p><%= latest_date || 'Latest' %> · <%= rankings.length %> businesses ranked · Updated monthly</p>
 </div>
 
 <div class="section">
@@ -62,7 +60,7 @@
       <h2 class="biz-name" style="margin:0;font-size:inherit;font-weight:inherit;line-height:inherit;">
         <%= b.name %>
         <% if(b.sponsored) { %><span class="tag-sponsored" style="margin-left:6px">Sponsored</span><% } %>
-        <% if(b.verified) { %><span class="tag-verified tooltip" style="margin-left:4px">Verified<span class="tooltip-text">This business has been independently verified by the BBI editorial team for authenticity.</span></span><% } %>
+        <% if(b.verified) { %><span class="tag-verified" style="margin-left:4px">Verified</span><% } %>
       </h2>
       <div class="biz-loc"><%= b.address || city.name %></div>
       <% if(b.google_rating) { %>
@@ -88,18 +86,6 @@
   </div>
   </div>
   <% } %>
-
-  <!-- Lead Capture Form -->
-  <div style="background: var(--navy); color: white; padding: var(--space-8); border-radius: var(--radius-lg); margin-top: var(--space-8); text-align: center; background-image: radial-gradient(circle at top right, rgba(232,160,32,0.15), transparent 60%);">
-    <h3 style="font-size: var(--font-size-xl); font-weight: 800; margin-bottom: var(--space-2);">Stay Updated</h3>
-    <p style="font-size: var(--font-size-sm); color: rgba(255,255,255,0.8); margin-bottom: var(--space-5);">Get monthly ranking updates for <%= cat.name %> in <%= city.name %> delivered to your inbox.</p>
-    <form action="/subscribe" method="POST" style="display: flex; gap: var(--space-3); max-width: 450px; margin: 0 auto; justify-content: center;">
-      <input type="hidden" name="city_id" value="<%= city.id %>">
-      <input type="hidden" name="category_id" value="<%= cat.id %>">
-      <input type="email" name="email" placeholder="Enter your email address" required style="flex: 1; padding: 12px 16px; border-radius: var(--radius-sm); border: none; font-size: var(--font-size-sm); outline: none;">
-      <button type="submit" class="btn btn-accent" style="white-space: nowrap;">Subscribe</button>
-    </form>
-  </div>
 
   <!-- Editorial Content & FAQs (Auto-generated) -->
   <% if(typeof seoContent !== 'undefined' && seoContent) { %>

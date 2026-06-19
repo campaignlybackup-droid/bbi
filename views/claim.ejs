@@ -6,16 +6,7 @@
 </div>
 
 <div class="section" style="max-width:600px">
-  <% if(typeof success !== 'undefined' && success && success.length) { %>
-    <div class="alert alert-success"><i class="ti ti-check"></i> <%= success %></div>
-    
-    <!-- Upsell Message -->
-    <div style="background: var(--navy); color: white; border-radius: var(--radius-lg); padding: var(--space-6); margin-top: var(--space-6); text-align: center;">
-      <h3 style="font-size: var(--font-size-lg); font-weight: 800; margin-bottom: var(--space-2);">Want to guarantee visibility?</h3>
-      <p style="font-size: var(--font-size-sm); color: rgba(255,255,255,0.85); margin-bottom: var(--space-4);">While you wait for your claim to be verified, explore our sponsorship options to get premium placement in <%= business.city_name %>.</p>
-      <a href="/advertise" class="btn btn-accent">View Sponsorship Options</a>
-    </div>
-  <% } else { %>
+  <% if(typeof success !== 'undefined' && success && success.length) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%= success %></div><% } %>
   <% if(typeof error !== 'undefined' && error && error.length) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%= error %></div><% } %>
 
   <div class="form-card">
@@ -47,7 +38,6 @@
       </button>
     </form>
   </div>
-  <% } %>
 </div>
 
 <%- include('partials/footer') %>
