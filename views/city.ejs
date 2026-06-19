@@ -7,6 +7,8 @@
   <p><%= city.state %> · <%= categoryRankings.length %> categories ranked</p>
 </div>
 
+<%- include('partials/trust-banner') %>
+
 <div class="section">
   <% if(categoryRankings.length) { %>
   <div class="section-label">Rankings by category</div>

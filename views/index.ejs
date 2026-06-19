@@ -3,21 +3,51 @@
 <script type="application/ld+json"><%- JSON.stringify(organizationSchema) %></script>
 <% } %>
 
+<%- include('partials/trust-banner') %>
+
 <%# === 1. HERO === %>
 <div class="hero">
   <h1>India's most trusted<br>business rankings</h1>
   <p>Built to help customers choose with confidence.</p>
-  <form class="search-bar" action="/search" method="GET" id="hero-search">
-    <input type="text" name="q" placeholder="Search businesses, categories, or cities…" aria-label="Search" autocomplete="off">
-    <button type="submit"><i class="ti ti-search" style="margin-right:6px;vertical-align:-2px"></i> Search</button>
-  </form>
-  <% if(topCategories && topCategories.length) { %>
-  <div class="hero-cats">
-    <% topCategories.slice(0, 6).forEach(cat => { %>
-    <a href="/category/<%= cat.slug %>" class="hero-cat-pill"><%= cat.name %></a>
-    <% }) %>
+  <div style="display: flex; justify-content: center; margin-top: var(--space-6);">
+    <a href="/rankings" class="btn btn-primary btn-lg"><i class="ti ti-search" style="font-size: 24px; margin-right: 8px;"></i> Search Rankings</a>
   </div>
-  <% } %>
+</div>
+
+<%# === 1B. LIVE STATS STRIP === %>
+<% if(typeof globalStats !== 'undefined') { %>
+<div style="background: var(--navy-dark); border-top: 1px solid rgba(255,255,255,0.05); padding: var(--space-4); text-align: center; color: var(--text-light); font-size: var(--font-size-sm); font-weight: 500; letter-spacing: 0.5px;">
+  Live Data: <strong style="color: var(--gold);"><%= globalStats.businesses.toLocaleString() %></strong> businesses ranked across <strong style="color: var(--gold);"><%= globalStats.cities.toLocaleString() %></strong> cities
+</div>
+<% } %>
+
+<%# === 1C. HOW SCORING WORKS === %>
+<div class="section" style="padding-top: var(--space-10); padding-bottom: var(--space-4);">
+  <div class="section-label" style="text-align: center;">Transparent Methodology</div>
+  <h2 class="section-title" style="text-align: center; margin-bottom: var(--space-8);">How BBI scoring works</h2>
+  <div class="trust-grid" style="text-align: left;">
+    <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+      <div style="background: #eef2f8; color: var(--navy); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; flex-shrink: 0;">1</div>
+      <div>
+        <h3 style="font-size: var(--font-size-md); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-1);">We aggregate data</h3>
+        <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Our algorithm pulls Google reviews, ratings, and profile completeness points automatically.</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+      <div style="background: #eef2f8; color: var(--navy); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; flex-shrink: 0;">2</div>
+      <div>
+        <h3 style="font-size: var(--font-size-md); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-1);">We calculate scores</h3>
+        <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Businesses are scored out of 100 based on a strict, mathematical formula.</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+      <div style="background: #eef2f8; color: var(--navy); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; flex-shrink: 0;">3</div>
+      <div>
+        <h3 style="font-size: var(--font-size-md); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-1);">We rank independently</h3>
+        <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">The highest scores rank at the top. Our editorial team ensures strict quality control.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <%# === 2. POPULAR CATEGORIES === %>

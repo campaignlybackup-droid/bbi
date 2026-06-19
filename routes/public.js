@@ -101,11 +101,19 @@ router.get('/', cacheMiddleware, (req, res) => {
   // Organization Schema
   const organizationSchema = generateOrganizationSchema();
 
+  // Global Stats
+  const globalStats = db.prepare(`
+    SELECT 
+      (SELECT COUNT(*) FROM businesses WHERE active=1) as businesses,
+      (SELECT COUNT(*) FROM cities WHERE active=1) as cities
+  `).get();
+
   res.render('index', {
     topCategories, 
     topCities, 
     featuredRankings,
     customRankings,
+    globalStats,
     faqSchema, 
     faqs,
     organizationSchema,
@@ -500,6 +508,29 @@ router.post('/get-listed', validateInquiry, (req, res) => {
     req.flash('error', 'Something went wrong. Please try again.');
   }
   res.redirect('/get-listed');
+});
+
+// ============================================
+// ADVERTISE & SUBSCRIBE
+// ============================================
+router.get('/advertise', (req, res) => {
+  res.render('advertise', {
+    title: 'Advertise with BBI — Reach High-Intent Customers',
+    metaDescription: 'Sponsor category and city pages on Bharat Business Index. High-intent, local traffic for your business.',
+    canonicalUrl: `${BASE_URL}/advertise`,
+    success: req.flash('success'),
+  });
+});
+
+router.post('/advertise', (req, res) => {
+  // In a real app, send email or save to DB. For now, just flash success.
+  req.flash('success', 'Thank you! Our sales team will contact you shortly.');
+  res.redirect('/advertise');
+});
+
+router.post('/subscribe', (req, res) => {
+  // In a real app, save email to a mailing list table. For now, redirect back.
+  res.redirect('back');
 });
 
 // ============================================

@@ -1,11 +1,44 @@
 <%- include('partials/header') %>
 
-<div class="page-header">
-  <h1>Get Your Business Listed</h1>
-  <p>Submit your business for inclusion in Bharat Business Index rankings. It's free and independent.</p>
+<div class="hero" style="background: var(--navy); padding: var(--space-10) var(--space-4) var(--space-12); text-align: center; color: white;">
+  <h1 style="font-size: var(--font-size-3xl); font-weight: 800; margin-bottom: var(--space-3); color: white;">Get Your Business Ranked</h1>
+  <p style="font-size: var(--font-size-lg); color: rgba(255,255,255,0.85); max-width: 600px; margin: 0 auto;">Join thousands of businesses discovered by customers through India's most trusted independent ranking platform.</p>
 </div>
 
-<div class="section" style="max-width:700px">
+<div class="section" style="max-width: 900px; margin-top: -60px; position: relative; z-index: 10;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-8);">
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-6); text-align: center; box-shadow: var(--shadow-md); border: 1px solid var(--border);">
+      <div style="width: 48px; height: 48px; background: #eef2f8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3);">
+        <i class="ti ti-shield-check" style="color: var(--navy); font-size: 24px;"></i>
+      </div>
+      <h3 style="font-size: var(--font-size-md); font-weight: 700; margin-bottom: var(--space-2); color: var(--text-primary);">Verified Authority</h3>
+      <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Earn a verified BBI Score that proves your credibility to customers.</p>
+    </div>
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-6); text-align: center; box-shadow: var(--shadow-md); border: 1px solid var(--border);">
+      <div style="width: 48px; height: 48px; background: #eef2f8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3);">
+        <i class="ti ti-users" style="color: var(--navy); font-size: 24px;"></i>
+      </div>
+      <h3 style="font-size: var(--font-size-md); font-weight: 700; margin-bottom: var(--space-2); color: var(--text-primary);">Quality Leads</h3>
+      <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Reach high-intent customers actively searching for the best businesses in your city and category.</p>
+    </div>
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-6); text-align: center; box-shadow: var(--shadow-md); border: 1px solid var(--border);">
+      <div style="width: 48px; height: 48px; background: #eef2f8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3);">
+        <i class="ti ti-rocket" style="color: var(--navy); font-size: 24px;"></i>
+      </div>
+      <h3 style="font-size: var(--font-size-md); font-weight: 700; margin-bottom: var(--space-2); color: var(--text-primary);">SEO Value</h3>
+      <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Get a dedicated, SEO-optimized profile indexed by Google, driving long-term organic traffic.</p>
+    </div>
+  </div>
+
+  <div style="background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-8); display: flex; align-items: center; gap: var(--space-4);">
+    <i class="ti ti-clock" style="font-size: 24px; color: var(--navy);"></i>
+    <div>
+      <strong style="color: var(--navy); font-size: var(--font-size-sm);">Timeline:</strong>
+      <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Your profile will be reviewed within 24 hours. Once approved, it is indexed by Google within 48 hours. Your first BBI Rank will be calculated on the 1st of the next month.</span>
+    </div>
+  </div>
+
+  <div style="max-width: 600px; margin: 0 auto;">
   <% if(typeof success !== 'undefined' && success && success.length) { %><div class="alert alert-success"><i class="ti ti-check"></i> <%= success %></div><% } %>
   <% if(typeof error !== 'undefined' && error && error.length) { %><div class="alert alert-error"><i class="ti ti-alert-circle"></i> <%= error %></div><% } %>
 
@@ -71,8 +104,9 @@
 
   <div style="background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);padding:14px 18px;font-size:var(--font-size-sm);color:var(--warn-text);display:flex;gap:10px;align-items:center;margin-top:var(--space-4)">
     <i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0"></i>
-    Submission is free. Our team will review your business and add it to the index. Rankings are calculated independently — submitting a business does not guarantee any specific rank.
+    Our team will review your business and add it to the index. Rankings are calculated independently — submitting a business does not guarantee any specific rank.
   </div>
+</div>
 </div>
 
 <%- include('partials/footer') %>
