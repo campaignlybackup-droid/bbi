@@ -140,6 +140,11 @@ async function processNext(provider) {
         break;
       case 'seo_generate':
         result = await provider.generateSeoContent(job.payload.pageType, job.payload);
+        // Flush public page cache so new SEO content displays correctly
+        try {
+          const { publicCache } = require('../../routes/public');
+          if (publicCache) publicCache.flushAll();
+        } catch (e) { /* best-effort flush */ }
         break;
       case 'digest_generate':
         result = await provider.generateDigest(job.payload);
@@ -250,6 +255,12 @@ async function processNext(provider) {
               const url = `${process.env.BASE_URL || 'https://bharatbusinessindex.com'}/rankings/${job.payload.city_slug}/${job.payload.cat_slug}`;
               googleApiService.pingIndexingApi(url, 'URL_UPDATED').catch(console.error);
             }
+
+            // Flush public page cache so new combo ranking page displays correctly
+            try {
+              const { publicCache } = require('../../routes/public');
+              if (publicCache) publicCache.flushAll();
+            } catch (e) { /* best-effort flush */ }
           } catch (postErr) {
             console.error('Combo SEO post-processing failed:', postErr.message);
           }

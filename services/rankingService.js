@@ -189,6 +189,12 @@ function recalculateRankings(city_id, category_id) {
   `);
 
   const transaction = db.transaction(() => {
+    // Clear any existing history for this exact date and combo to prevent duplicates
+    db.prepare(`
+      DELETE FROM ranking_history 
+      WHERE city_id=? AND category_id=? AND ranking_date=?
+    `).run(city_id, category_id, today);
+
     // Only insert into history for ranked businesses
     rankedBusinesses.forEach((b, i) => {
       insertHistory.run(b.id, city_id, category_id, i + 1, b.final_score, b.auto_score, b.manual_boost, today);

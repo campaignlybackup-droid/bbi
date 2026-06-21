@@ -157,6 +157,20 @@ function getDigestMonths() {
 }
 
 /**
+ * Get all digests formatted for the index page.
+ */
+function getAllDigests() {
+  const months = getDigestMonths();
+  return months.map(m => {
+    return {
+      month_year: toMonthSlug(m.month),
+      month_display: formatMonth(m.month),
+      summary: `Review the top business ranking changes, biggest movers, and new entrants for ${formatMonth(m.month)}.`
+    };
+  });
+}
+
+/**
  * Get the previous month in YYYY-MM format.
  */
 function getPrevMonth(month) {
@@ -206,6 +220,7 @@ module.exports = {
   generateDigest,
   getDigest,
   getDigestMonths,
+  getAllDigests,
   formatMonth,
   parseMonthSlug,
   toMonthSlug,
