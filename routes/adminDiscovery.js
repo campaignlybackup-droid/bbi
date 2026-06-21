@@ -52,7 +52,7 @@ router.post('/import', requireAuth, async (req, res) => {
   
   for (const placeId of idsToImport) {
     try {
-      const result = await placesService.importAndAutomatePlace(placeId, cityId, categoryId, req.session.adminId);
+      const result = await placesService.importAndAutomatePlace(placeId, city_id, category_id, req.session.adminId);
       if (result.success) successCount++;
       else failCount++;
     } catch (e) {
