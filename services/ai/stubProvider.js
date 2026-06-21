@@ -194,6 +194,25 @@ async function generateSentiment(reviewText, businessName) {
   return "Customers have left various reviews for this business, noting positive aspects of the service and occasional areas for improvement. Overall feedback reflects the diverse experiences of recent patrons.";
 }
 
+async function generateComboSeoContent(city, category) {
+  return {
+    title: `Best ${category.name} in ${city.name} — Top BBI Rankings`,
+    meta_description: `Find the top-rated ${category.name} in ${city.name}. Bharat Business Index ranks the best local providers based on reviews and verified quality metrics.`,
+    editorial_content: `${city.name} is home to excellent ${category.name} providers. Our monthly BBI rankings help you identify the most trusted businesses in this category, evaluated through customer feedback and objective quality indicators.`,
+    faq_json: JSON.stringify([
+      {
+        question: `How does BBI rank ${category.name} in ${city.name}?`,
+        answer: `We use a transparent scoring system based on Google reviews, online presence, and profile completeness to rank ${category.name} in ${city.name}.`
+      },
+      {
+        question: `Are these ${city.name} ${category.name} rankings updated?`,
+        answer: `Yes, our rankings for ${category.name} in ${city.name} are recalculated on the 1st of every month.`
+      }
+    ]),
+    ai_summary: `Top ranked ${category.name} providers serving the ${city.name} area.`
+  };
+}
+
 module.exports = {
   generateListingContent,
   generateFaqContent,
