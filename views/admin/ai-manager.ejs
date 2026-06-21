@@ -1,0 +1,92 @@
+<%- include('layout-top') %>
+
+<div class="admin-header">
+  <div class="admin-header-content">
+    <h1 class="admin-title">Bulk AI Operations Manager</h1>
+    <p class="admin-subtitle">Identify content gaps across the directory and queue bulk AI generation tasks.</p>
+  </div>
+</div>
+
+<% if(flash && flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+<% if(flash && flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:16px;margin-bottom:24px;">
+  <!-- Missing Descriptions -->
+  <div class="stat-card" style="border:1px solid #E2E8F0;box-shadow:none">
+    <div class="stat-title">Missing Descriptions</div>
+    <div class="stat-value"><%= stats.missingDescriptions %></div>
+    <div style="margin-top:12px">
+      <form method="POST" action="/admin/ai-manager/bulk-queue">
+        <input type="hidden" name="target" value="descriptions">
+        <button type="submit" class="btn btn-sm btn-outline" style="width:100%;justify-content:center" <%= stats.missingDescriptions === 0 ? 'disabled' : '' %>>
+          <i class="ti ti-robot"></i> Queue AI Generation
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Missing FAQs -->
+  <div class="stat-card" style="border:1px solid #E2E8F0;box-shadow:none">
+    <div class="stat-title">Missing FAQs</div>
+    <div class="stat-value"><%= stats.missingFaqs %></div>
+    <div style="margin-top:12px">
+      <form method="POST" action="/admin/ai-manager/bulk-queue">
+        <input type="hidden" name="target" value="faqs">
+        <button type="submit" class="btn btn-sm btn-outline" style="width:100%;justify-content:center" <%= stats.missingFaqs === 0 ? 'disabled' : '' %>>
+          <i class="ti ti-robot"></i> Queue AI Generation
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Missing AI Sentiment -->
+  <div class="stat-card" style="border:1px solid #E2E8F0;box-shadow:none">
+    <div class="stat-title">Missing Review Sentiments</div>
+    <div class="stat-value"><%= stats.missingSentiments %></div>
+    <div style="margin-top:12px">
+      <form method="POST" action="/admin/ai-manager/bulk-queue">
+        <input type="hidden" name="target" value="sentiments">
+        <button type="submit" class="btn btn-sm btn-outline" style="width:100%;justify-content:center" <%= stats.missingSentiments === 0 ? 'disabled' : '' %>>
+          <i class="ti ti-robot"></i> Queue Sync & Analysis
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+    <h3 class="card-title">Active AI Job Queue</h3>
+    <a href="/admin/ai-logs" class="btn btn-sm btn-outline">View Logs</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Job ID</th>
+          <th>Type</th>
+          <th>Entity</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (queue.length === 0) { %>
+          <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">The queue is empty.</td></tr>
+        <% } else { %>
+          <% queue.forEach(job => { %>
+          <tr>
+            <td><%= job.id %></td>
+            <td><span class="badge" style="background:#E2E8F0;color:#4A5568"><%= job.job_type %></span></td>
+            <td><%= job.entity_id %></td>
+            <td><span class="badge" style="background:#FEFCBF;color:#975A16"><%= job.status %></span></td>
+            <td><%= new Date(job.created_at).toLocaleString() %></td>
+          </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('layout-bottom') %>

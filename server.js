@@ -140,6 +140,7 @@ app.use('/blog', require('./routes/blog'));
 app.use('/digest', require('./routes/digest'));
 app.use('/', require('./routes/public'));     // homepage, rankings, business, city, category, methodology, get-listed, claim
 app.use('/admin/login', authLimiter);        // Rate limit login attempts — must be before admin router
+app.use('/admin/discovery', require('./routes/adminDiscovery'));
 app.use('/admin', require('./routes/admin'));
 
 // ============================================

@@ -91,7 +91,61 @@ async function getSearchConsoleData(siteUrl, days = 30) {
   }
 }
 
+/**
+ * Get Google Search Console Analytics for a specific page URL
+ * @param {string} siteUrl - The exact site URL registered in GSC
+ * @param {string} pageUrl - The specific page URL to query
+ * @param {number} days - Number of days to fetch
+ */
+async function getPageSearchConsoleData(siteUrl, pageUrl, days = 30) {
+  const auth = getAuthClient();
+  if (!auth) return null;
+
+  try {
+    const webmasters = google.webmasters({ version: 'v3', auth });
+    
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
+
+    const [timelineRes, queriesRes] = await Promise.all([
+      webmasters.searchanalytics.query({
+        siteUrl: siteUrl,
+        requestBody: {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          dimensions: ['date'],
+          dimensionFilterGroups: [{
+            filters: [{ dimension: 'page', operator: 'equals', expression: pageUrl }]
+          }]
+        },
+      }),
+      webmasters.searchanalytics.query({
+        siteUrl: siteUrl,
+        requestBody: {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          dimensions: ['query'],
+          rowLimit: 5,
+          dimensionFilterGroups: [{
+            filters: [{ dimension: 'page', operator: 'equals', expression: pageUrl }]
+          }]
+        },
+      })
+    ]);
+    
+    return {
+      timeline: timelineRes.data.rows || [],
+      topQueries: queriesRes.data.rows || []
+    };
+  } catch (error) {
+    console.error('❌ Google Search Console API Error (Page Level):', error.message);
+    return null;
+  }
+}
+
 module.exports = {
   pingIndexingApi,
-  getSearchConsoleData
+  getSearchConsoleData,
+  getPageSearchConsoleData
 };

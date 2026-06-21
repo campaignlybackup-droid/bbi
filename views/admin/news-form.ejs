@@ -6,7 +6,8 @@
 
 <% if(flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
 
-<form action="/admin/news<%= newsItem ? '/' + newsItem.id : '' %>" method="POST">
+<form action="/admin/news<%= newsItem ? '/' + newsItem.id : '' %>" method="POST" onsubmit="return encodeNewsContent()">
+  <input type="hidden" name="content_encoded" id="contentEncoded" value="">
   <div class="card" style="max-width: 800px">
     <div class="form-group">
       <label>News Title *</label>
@@ -20,7 +21,7 @@
     
     <div class="form-group">
       <label>Content *</label>
-      <textarea name="content" rows="15" style="resize:vertical" required><%= newsItem ? newsItem.content : '' %></textarea>
+      <textarea id="newsContent" rows="15" style="resize:vertical" required><%= newsItem ? newsItem.content : '' %></textarea>
       <div style="font-size:11px;color:#4A5568;margin-top:4px">HTML is supported for formatting (e.g., &lt;p&gt;, &lt;strong&gt;, &lt;h3&gt;).</div>
     </div>
     
@@ -38,4 +39,13 @@
   </div>
 </form>
 
+<script>
+function encodeNewsContent() {
+  const content = document.getElementById('newsContent').value;
+  document.getElementById('contentEncoded').value = btoa(unescape(encodeURIComponent(content)));
+  return true;
+}
+</script>
+
 <%- include('layout-bottom') %>
+

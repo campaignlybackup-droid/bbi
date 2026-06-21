@@ -1,0 +1,143 @@
+<%- include('layout-top') %>
+<div class="admin-header">
+  <div class="admin-header-content">
+    <h1 class="admin-title">Market Discovery</h1>
+    <p class="admin-subtitle">Find and import unlisted businesses directly from Google Places.</p>
+  </div>
+</div>
+
+<div class="admin-content">
+  <%- include('partials/flash') %>
+
+  <!-- Search Form -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title">Search Market</h3>
+    </div>
+    <div class="card-body">
+      <form action="/admin/discovery/search" method="POST" class="admin-form">
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>City</label>
+            <select name="city_id" class="form-control" required>
+              <option value="">Select a City</option>
+              <% cities.forEach(c => { %>
+                <option value="<%= c.id %>" <%= typeof currentCity !== 'undefined' && currentCity && currentCity.id == c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category_id" class="form-control" required>
+              <option value="">Select a Category</option>
+              <% categories.forEach(cat => { %>
+                <option value="<%= cat.id %>" <%= typeof currentCategory !== 'undefined' && currentCategory && currentCategory.id == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions mt-3">
+          <button type="submit" class="btn btn-primary"><i class="ti ti-search"></i> Search Local Market</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } else if (results && results.length > 0) { %>
+    <div class="card">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title">Discovery Results: <%= currentCategory.name %> in <%= currentCity.name %></h3>
+        <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('import-form').submit()">
+          <i class="ti ti-download"></i> Import Selected
+        </button>
+      </div>
+      
+      <div class="table-responsive">
+        <form id="import-form" action="/admin/discovery/import" method="POST">
+          <input type="hidden" name="city_id" value="<%= currentCity.id %>">
+          <input type="hidden" name="category_id" value="<%= currentCategory.id %>">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+                <th>Business Name</th>
+                <th>Address</th>
+                <th>Rating</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% results.forEach(r => { %>
+                <tr class="<%= r.exists ? 'row-disabled' : '' %>">
+                  <td>
+                    <% if (!r.exists) { %>
+                      <input type="checkbox" name="place_ids" value="<%= r.place_id %>" class="import-checkbox">
+                    <% } else { %>
+                      <i class="ti ti-check text-success"></i>
+                    <% } %>
+                  </td>
+                  <td><strong><%= r.name %></strong></td>
+                  <td class="text-muted"><small><%= r.address %></small></td>
+                  <td>
+                    <div class="rating-badge">
+                      <i class="ti ti-star-filled text-warning"></i>
+                      <%= r.rating %> (<%= r.review_count %>)
+                    </div>
+                  </td>
+                  <td>
+                    <% if (r.exists) { %>
+                      <span class="badge bg-success text-white">Listed on BBI</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary text-white">Missing</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </form>
+      </div>
+    </div>
+  <% } else if (results && results.length === 0) { %>
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="ti ti-search text-muted mb-3" style="font-size: 3rem;"></i>
+        <h3>No results found</h3>
+        <p class="text-muted">Could not find any businesses for this combination.</p>
+      </div>
+    </div>
+  <% } %>
+
+</div>
+
+<script>
+function toggleAll(source) {
+  checkboxes = document.querySelectorAll('.import-checkbox');
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+</script>
+
+<style>
+.row-disabled {
+  background-color: #f8f9fa;
+  opacity: 0.7;
+}
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #fff3cd;
+  color: #856404;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+</style>
+
+<%- include('partials/footer') %>

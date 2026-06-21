@@ -2,7 +2,9 @@
 
 <% if(flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
 
-<form method="POST" action="/admin/seo/<%= combo ? `combo/${combo.cityId}/${combo.catId}` : `${type}/${entity.id}` %>">
+<form method="POST" action="/admin/seo/<%= combo ? `combo/${combo.cityId}/${combo.catId}` : `${type}/${entity.id}` %>" id="seoForm" onsubmit="return encodeSeoContent()">
+  <input type="hidden" name="editorial_encoded" id="editorialEncoded" value="">
+  <input type="hidden" name="faq_encoded" id="faqEncoded" value="">
   <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
 
     <div>
@@ -22,7 +24,7 @@
         <h3>Page Content</h3>
         <div class="form-group">
           <label>Editorial Content (HTML allowed)</label>
-          <textarea name="editorial_content" id="seoEditorial" rows="6" style="resize:vertical"><%= seoContent.editorial_content %></textarea>
+          <textarea id="seoEditorial" rows="6" style="resize:vertical"><%= seoContent.editorial_content %></textarea>
           <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Appears at the top of the page. Use this for highly optimized, manual introductions.</div>
         </div>
         <div class="form-group">
@@ -31,12 +33,48 @@
         </div>
         <div class="form-group">
           <label>FAQ JSON Array</label>
-          <textarea name="faq_json" id="seoFaq" rows="4" style="font-family:monospace;resize:vertical"><%= seoContent.faq_json %></textarea>
+          <textarea id="seoFaq" rows="4" style="font-family:monospace;resize:vertical"><%= seoContent.faq_json %></textarea>
         </div>
       </div>
     </div>
 
     <div>
+      <div class="ai-panel" style="margin-bottom:var(--space-4)">
+        <h3><i class="ti ti-brand-google" style="color:#1A73E8"></i> Search Console</h3>
+        <% if (typeof gscData !== 'undefined' && gscData) { %>
+          <div style="margin-top:12px;">
+            <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Last 30 Days (Page Level)</p>
+            <div style="background:#fff;border:1px solid var(--border-light);border-radius:6px;padding:12px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;border-bottom:1px solid #f1f3f5;padding-bottom:8px">
+                <span style="font-size:12px;color:var(--text-secondary)">Total Clicks</span>
+                <strong style="font-size:14px;color:#1A73E8"><%= gscData.timeline.reduce((sum, row) => sum + (row.clicks||0), 0) %></strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="font-size:12px;color:var(--text-secondary)">Impressions</span>
+                <strong style="font-size:14px;color:var(--text-main)"><%= gscData.timeline.reduce((sum, row) => sum + (row.impressions||0), 0) %></strong>
+              </div>
+            </div>
+            
+            <% if (gscData.topQueries && gscData.topQueries.length > 0) { %>
+            <h4 style="font-size:11px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px">Top Queries (Clicks)</h4>
+            <ul style="list-style:none;padding:0;margin:0;font-size:12px;">
+              <% gscData.topQueries.forEach(q => { %>
+                <li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f3f5">
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;color:var(--text-main)" title="<%= q.keys[0] %>"><%= q.keys[0] %></span>
+                  <strong style="color:var(--text-secondary)"><%= q.clicks %></strong>
+                </li>
+              <% }) %>
+            </ul>
+            <% } %>
+          </div>
+        <% } else { %>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-muted);background:#F5F6F8;padding:16px;border-radius:6px;text-align:center;border:1px dashed #CBD5E0">
+            <i class="ti ti-chart-line" style="font-size:24px;display:block;margin-bottom:8px;color:#A0AEC0"></i>
+            No GSC data available for this page URL yet.
+          </div>
+        <% } %>
+      </div>
+
       <div class="ai-panel" style="margin-bottom:var(--space-4)">
         <h3><i class="ti ti-wand"></i> AI SEO Assistant</h3>
         <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Auto-generate highly optimized content for this page using AI.</p>
@@ -62,6 +100,14 @@
 </form>
 
 <script>
+function encodeSeoContent() {
+  const editorial = document.getElementById('seoEditorial').value;
+  const faq = document.getElementById('seoFaq').value;
+  document.getElementById('editorialEncoded').value = btoa(unescape(encodeURIComponent(editorial)));
+  document.getElementById('faqEncoded').value = btoa(unescape(encodeURIComponent(faq)));
+  return true;
+}
+
 async function runAiRequest(btnId, type, promptData) {
   const btn = document.getElementById(btnId);
   btn.classList.add('loading');

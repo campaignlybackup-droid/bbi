@@ -190,6 +190,10 @@ async function generateImportContent(business) {
   };
 }
 
+async function generateSentiment(reviewText, businessName) {
+  return "Customers have left various reviews for this business, noting positive aspects of the service and occasional areas for improvement. Overall feedback reflects the diverse experiences of recent patrons.";
+}
+
 module.exports = {
   generateListingContent,
   generateFaqContent,
@@ -199,5 +203,6 @@ module.exports = {
   moderateContent,
   suggestRelated,
   generateImportContent,
+  generateComboSeoContent,
+  generateSentiment,
 };
-

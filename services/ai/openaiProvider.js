@@ -409,6 +409,28 @@ Return EXACTLY a JSON object with this structure:
   }
 }
 
+/**
+ * Generate AI sentiment summary from raw review text.
+ */
+async function generateSentiment(reviewText, businessName) {
+  const prompt = `Analyze the following customer reviews for the business "${businessName}".
+Reviews:
+${reviewText.substring(0, 3000)}
+
+Generate a highly concise, 2-sentence summary of the overall customer sentiment.
+Requirements:
+- Keep it entirely objective (third-person). Do not use "I", "we", "our".
+- Highlight both positive aspects and any common criticisms if present.
+- Return EXACTLY a JSON object: {"sentiment": "string (2 sentences maximum)"}`;
+
+  try {
+    const result = await generateText(prompt);
+    return result.sentiment;
+  } catch (e) {
+    return null;
+  }
+}
+
 module.exports = {
   generateListingContent,
   generateFaqContent,
@@ -424,5 +446,6 @@ module.exports = {
   generateDigestSummary,
   generateImportContent,
   generateComboSeoContent,
+  generateSentiment,
 };
 

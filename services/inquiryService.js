@@ -59,6 +59,7 @@ function getInquiry(id) {
 
 /**
  * Approve an inquiry — creates a new business from it.
+ * Immediately triggers ranking recalculation and page rebuild.
  */
 function approveInquiry(id, adminId) {
   const inquiry = getInquiry(id);
@@ -79,10 +80,33 @@ function approveInquiry(id, adminId) {
       inquiry.contact_phone
     );
 
-    // Create initial ranking scores
+    // Create initial ranking scores with proper component calculation
+    const { calculateScoreComponents } = require('./rankingService');
+    const components = calculateScoreComponents({
+      website: inquiry.website || '',
+      verified: 0,
+      description: inquiry.description || '',
+      phone: inquiry.contact_phone || '',
+      address: '',
+      google_rating: 0,
+      google_review_count: 0,
+    });
+
     db.prepare(`
-      INSERT INTO ranking_scores (business_id, final_score, auto_score) VALUES (?, 0, 0)
-    `).run(bizResult.lastInsertRowid);
+      INSERT INTO ranking_scores (business_id, review_score, volume_score, website_score,
+        completeness_score, verified_score, editorial_score, auto_score, manual_boost, final_score)
+      VALUES (?, ?, ?, ?, ?, ?, 0, ?, 0, ?)
+      ON CONFLICT(business_id) DO UPDATE SET
+        review_score=excluded.review_score, volume_score=excluded.volume_score,
+        website_score=excluded.website_score, completeness_score=excluded.completeness_score,
+        verified_score=excluded.verified_score, auto_score=excluded.auto_score,
+        final_score=excluded.final_score, last_calculated=CURRENT_TIMESTAMP
+    `).run(
+      bizResult.lastInsertRowid,
+      components.review_score, components.volume_score, components.website_score,
+      components.completeness_score, components.verified_score,
+      components.auto_score, components.auto_score
+    );
 
     // Update inquiry status
     db.prepare(`
@@ -93,7 +117,23 @@ function approveInquiry(id, adminId) {
     return bizResult.lastInsertRowid;
   });
 
-  return transaction();
+  const bizId = transaction();
+
+  // Immediately recalculate rankings and rebuild pages so ranking/SEO pages appear instantly
+  try {
+    const pageRebuildService = require('./pageRebuildService');
+    pageRebuildService.rebuildForBusinesses([Number(bizId)]);
+  } catch (rebuildErr) {
+    console.error('Page rebuild after inquiry approval failed:', rebuildErr.message);
+  }
+
+  // Flush public page cache so updated rankings are visible immediately
+  try {
+    const { publicCache } = require('../routes/public');
+    if (publicCache) publicCache.flushAll();
+  } catch (e) { /* cache flush is best-effort */ }
+
+  return bizId;
 }
 
 /**

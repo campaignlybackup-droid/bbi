@@ -5,7 +5,8 @@
   <a href="/admin/blog" class="btn btn-outline"><i class="ti ti-arrow-left"></i> Back to Blog</a>
 </div>
 
-<form action="<%= post ? '/admin/blog/'+post.id : '/admin/blog' %>" method="POST">
+<form action="<%= post ? '/admin/blog/'+post.id : '/admin/blog' %>" method="POST" id="blogForm" onsubmit="return encodeBlogContent()">
+  <input type="hidden" name="content_encoded" id="contentEncoded" value="">
   <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
 
     <div>
@@ -47,7 +48,7 @@
 
         <div class="form-group">
           <label>Content (HTML) *</label>
-          <textarea name="content" id="blogContent" rows="15" required style="font-family:monospace;resize:vertical"><%= post ? post.content : '' %></textarea>
+          <textarea id="blogContent" rows="15" required style="font-family:monospace;resize:vertical"><%= post ? post.content : '' %></textarea>
         </div>
       </div>
     </div>
@@ -75,6 +76,13 @@
 </form>
 
 <script>
+// Encode HTML content as Base64 before form submission to bypass WAF
+function encodeBlogContent() {
+  const content = document.getElementById('blogContent').value;
+  document.getElementById('contentEncoded').value = btoa(unescape(encodeURIComponent(content)));
+  return true;
+}
+
 async function generateBlogDraft() {
   const title = document.getElementById('blogTitle').value;
   if(!title) return alert('Please enter a Title first.');

@@ -81,6 +81,12 @@ function rebuildForBusinesses(businessIds) {
   console.log(`✅ Page rebuild complete: ${combos.length} combos, ${totalRanked} businesses ranked.`);
   console.log(`   SEO jobs queued: ${affectedCities.length} cities, ${affectedCategories.length} categories, ${combos.length} ranking pages.`);
 
+  // Flush public page cache so updated rankings are visible immediately
+  try {
+    const { publicCache } = require('../routes/public');
+    if (publicCache) publicCache.flushAll();
+  } catch (e) { /* cache flush is best-effort */ }
+
   return {
     combos: combos.length,
     rankings: totalRanked,

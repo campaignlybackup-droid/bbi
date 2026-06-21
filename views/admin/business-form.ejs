@@ -2,6 +2,10 @@
 
 <% if(flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
 
+<% if (business) { %>
+<form id="syncReviewsForm" method="POST" action="/admin/businesses/<%= business.id %>/sync-reviews"></form>
+<% } %>
+
 <form method="POST" action="/admin/businesses<%= business ? '/'+business.id : '' %>">
   <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
 
@@ -107,7 +111,14 @@
       </div>
 
       <div class="form-card">
-        <h3>Review Data</h3>
+        <h3 style="display:flex;justify-content:space-between;align-items:center;">
+          Review Data
+          <% if(business) { %>
+            <button type="submit" form="syncReviewsForm" class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:11px;background:#F5F6F8;border-color:#CBD5E0">
+              <i class="ti ti-refresh"></i> Sync & Analyze Reviews
+            </button>
+          <% } %>
+        </h3>
         <div class="form-row">
           <div class="form-group">
             <label>Google Rating (0–5)</label>
@@ -118,6 +129,16 @@
             <input type="number" name="google_review_count" min="0" value="<%= business ? business.google_review_count||'' : '' %>">
           </div>
         </div>
+        
+        <% if (business && business.ai_sentiment) { %>
+        <div class="form-group" style="margin-top:12px;background:#E8F0FE;padding:12px;border-radius:6px;border:1px solid #1A73E8;">
+          <label style="color:#1A73E8;display:flex;align-items:center;gap:4px;font-weight:600;"><i class="ti ti-robot"></i> AI Sentiment Summary</label>
+          <p style="font-size:13px;margin:6px 0 0;line-height:1.5;color:#1A1A2E;"><%= business.ai_sentiment %></p>
+          <% if(business.ai_sentiment_date) { %>
+            <small style="display:block;margin-top:8px;color:#5f6368;font-size:11px;">Last synced: <%= new Date(business.ai_sentiment_date).toLocaleString('en-IN') %></small>
+          <% } %>
+        </div>
+        <% } %>
       </div>
     </div>
 

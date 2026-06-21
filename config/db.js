@@ -39,6 +39,8 @@ try { db.exec('ALTER TABLE businesses ADD COLUMN bbi_score REAL DEFAULT 0'); } c
 try { db.exec('ALTER TABLE businesses ADD COLUMN latitude REAL'); } catch (e) {}
 try { db.exec('ALTER TABLE businesses ADD COLUMN longitude REAL'); } catch (e) {}
 try { db.exec('ALTER TABLE businesses ADD COLUMN is_ranked INTEGER DEFAULT 1'); } catch (e) {}
+try { db.exec('ALTER TABLE businesses ADD COLUMN ai_sentiment TEXT'); } catch (e) {}
+try { db.exec('ALTER TABLE businesses ADD COLUMN ai_sentiment_date DATETIME'); } catch (e) {}
 
 // Create global site settings table
 db.exec(`

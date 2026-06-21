@@ -612,3 +612,4 @@ router.get('/news/:slug', cacheMiddleware, (req, res) => {
 });
 
 module.exports = router;
+module.exports.publicCache = publicCache;

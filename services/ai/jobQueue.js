@@ -114,9 +114,29 @@ async function processNext(provider) {
     switch (job.job_type) {
       case 'listing_generate':
         result = await provider.generateListingContent(job.payload);
+        if (result && job.payload.id) {
+          try {
+            db.prepare(`UPDATE businesses SET description = ?, tags = ? WHERE id = ?`).run(result.summary, result.tags, job.payload.id);
+          } catch (e) { console.error('listing_generate post-process failed:', e.message); }
+        }
         break;
       case 'faq_generate':
         result = await provider.generateFaqContent(job.payload);
+        if (result && Array.isArray(result) && job.payload.id) {
+          try {
+            const insertFaq = db.prepare(`INSERT INTO faqs (page_type, entity_id, question, answer, sort_order, active) VALUES ('business', ?, ?, ?, ?, 1)`);
+            db.prepare(`DELETE FROM faqs WHERE page_type='business' AND entity_id=?`).run(job.payload.id);
+            result.forEach((faq, i) => {
+              try { insertFaq.run(job.payload.id, faq.question, faq.answer, i); } catch (e) {}
+            });
+          } catch (e) { console.error('faq_generate post-process failed:', e.message); }
+        }
+        break;
+      case 'sync_reviews':
+        try {
+          const placesService = require('../placesService');
+          result = await placesService.syncReviewsAndSentiment(job.payload.id);
+        } catch (e) { console.error('sync_reviews failed:', e.message); }
         break;
       case 'seo_generate':
         result = await provider.generateSeoContent(job.payload.pageType, job.payload);
