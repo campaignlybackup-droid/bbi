@@ -1,0 +1,82 @@
+<%- include('../layout-top') %>
+
+<div class="row mb-4 align-items-center">
+  <div class="col-md-6">
+    <h1 class="h3 text-gray-800"><%= title %></h1>
+  </div>
+  <div class="col-md-6 text-right">
+    <a href="/admin/seo-engine" class="btn btn-secondary btn-sm">Back to Dashboard</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Create Keyword Variation</h6>
+      </div>
+      <div class="card-body">
+        <form action="/admin/seo-engine/variations" method="POST">
+          <div class="form-group">
+            <label>Variation Slug (The New URL)</label>
+            <input type="text" name="variation_slug" class="form-control" required placeholder="e.g. top-rated-dentists">
+          </div>
+          <div class="form-group">
+            <label>Primary URL (To Fetch Data From)</label>
+            <input type="text" name="primary_url" class="form-control" required placeholder="e.g. /delhi/dentists">
+          </div>
+          <div class="form-group">
+            <label>Mode</label>
+            <select name="mode" class="form-control" required>
+              <option value="canonical">Canonical Alias (301 Redirect to Primary)</option>
+              <option value="independent">Independent Page (Stand-alone content)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Custom Title (Optional)</label>
+            <input type="text" name="title" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Custom H1 (Optional)</label>
+            <input type="text" name="h1" class="form-control">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Add Variation</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card shadow mb-4">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+            <thead>
+              <tr>
+                <th>Variation URL</th>
+                <th>Primary Mapped URL</th>
+                <th>Mode</th>
+                <th>Active</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% variations.forEach(v => { %>
+                <tr>
+                  <td><strong>/<%= v.variation_slug %></strong></td>
+                  <td><%= v.primary_url %></td>
+                  <td><span class="badge <%= v.mode === 'canonical' ? 'badge-info' : 'badge-warning' %>"><%= v.mode %></span></td>
+                  <td>
+                    <span class="badge <%= v.active ? 'badge-success' : 'badge-secondary' %>">
+                      <%= v.active ? 'Yes' : 'No' %>
+                    </span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layout-bottom') %>

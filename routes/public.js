@@ -611,5 +611,181 @@ router.get('/news/:slug', cacheMiddleware, (req, res) => {
   });
 });
 
+// ============================================
+// PROGRAMMATIC SEO: Use Cases
+// ============================================
+router.get('/best-:catSlug-for-:usecaseSlug-:citySlug', cacheMiddleware, (req, res, next) => {
+  const cat = db.prepare(`SELECT * FROM categories WHERE slug=? AND active=1`).get(req.params.catSlug);
+  const city = db.prepare(`SELECT * FROM cities WHERE slug=? AND active=1`).get(req.params.citySlug);
+  if (!cat || !city) return next();
+
+  const usecase = db.prepare(`SELECT * FROM use_cases WHERE slug=? AND category_id=? AND active=1`).get(req.params.usecaseSlug, cat.id);
+  if (!usecase) return next();
+
+  const rankings = db.prepare(`
+    SELECT b.id, b.name, b.slug, b.verified, b.sponsored,
+           b.google_rating, b.google_review_count, b.address, b.description,
+           (SELECT rank_position FROM ranking_history WHERE business_id=b.id ORDER BY ranking_date DESC LIMIT 1) as current_rank
+    FROM businesses b
+    JOIN use_case_businesses ucb ON ucb.business_id = b.id
+    WHERE ucb.use_case_id = ? AND b.city_id = ? AND b.active = 1
+    ORDER BY b.google_rating DESC
+    LIMIT 20
+  `).all(usecase.id, city.id);
+
+  if (rankings.length === 0) return next(); 
+
+  const seoContent = getSeoContent('usecase', usecase.id, city.id);
+  let faqs = [];
+  if (seoContent && seoContent.faq_json) {
+    try { faqs = JSON.parse(seoContent.faq_json); } catch (e) {}
+  }
+  const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: city.name, url: `/city/${city.slug}` },
+    { name: cat.name, url: `/category/${cat.slug}` },
+    { name: `Best for ${usecase.name}` }
+  ]);
+
+  const itemListSchema = generateItemListSchema(rankings, city, cat);
+
+  res.render('usecase-ranking', {
+    city, cat, usecase, rankings, seoContent, faqs, faqSchema, breadcrumbSchema, itemListSchema,
+    title: seoContent?.title || `Best ${cat.name} for ${usecase.name} in ${city.name} — BBI Rankings`,
+    metaDescription: seoContent?.meta_description || `Find the top-rated ${cat.name} specifically for ${usecase.name} in ${city.name}. Independent rankings.`,
+    canonicalUrl: `${BASE_URL}/best-${cat.slug}-for-${usecase.slug}-${city.slug}`
+  });
+});
+
+// ============================================
+// PROGRAMMATIC SEO: State & Area Categories
+// ============================================
+router.get('/:locationSlug/:catSlug', cacheMiddleware, (req, res, next) => {
+  if (['rankings', 'category', 'city', 'best', 'business', 'admin', 'api', 'news', 'blog'].includes(req.params.locationSlug)) return next();
+
+  const catSlug = req.params.catSlug;
+  const locationSlug = req.params.locationSlug;
+  const cat = db.prepare(`SELECT * FROM categories WHERE slug=? AND active=1`).get(catSlug);
+  if (!cat) return next();
+
+  try {
+    // Check if Area
+    const area = db.prepare(`SELECT a.*, c.name as city_name, c.slug as city_slug FROM areas a JOIN cities c ON c.id = a.city_id WHERE a.slug=? AND a.active=1`).get(locationSlug);
+    
+    if (area) {
+      const rankings = db.prepare(`
+        SELECT b.id, b.name, b.slug, b.verified, b.sponsored,
+               b.google_rating, b.google_review_count, b.address, b.description
+        FROM businesses b
+        WHERE b.area_id = ? AND b.category_id = ? AND b.active = 1
+        ORDER BY b.google_rating DESC
+        LIMIT 20
+      `).all(area.id, cat.id);
+
+      const seoContent = getSeoContent('area_category', area.id, cat.id);
+      let faqs = [];
+      if (seoContent && seoContent.faq_json) {
+        try { faqs = JSON.parse(seoContent.faq_json); } catch (e) {}
+      }
+      const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
+      const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: area.city_name, url: `/city/${area.city_slug}` },
+        { name: area.name },
+        { name: cat.name }
+      ]);
+      const itemListSchema = generateItemListSchema(rankings, {name: area.name}, cat);
+
+      return res.render('area-ranking', {
+        area, cat, rankings, seoContent, faqs, faqSchema, breadcrumbSchema, itemListSchema,
+        title: seoContent?.title || `Top ${cat.name} in ${area.name}, ${area.city_name}`,
+        metaDescription: seoContent?.meta_description || `Discover the best ${cat.name} in ${area.name}, ${area.city_name}.`,
+        canonicalUrl: `${BASE_URL}/${area.slug}/${cat.slug}`
+      });
+    }
+
+    // Check if State
+    const state = db.prepare(`SELECT * FROM states WHERE slug=? AND active=1`).get(locationSlug);
+    if (state) {
+      const topBusinesses = db.prepare(`
+        SELECT b.name, b.slug, b.google_rating, b.google_review_count, c.name as city_name,
+               (SELECT final_score FROM ranking_scores WHERE business_id=b.id) as final_score
+        FROM businesses b
+        JOIN cities c ON c.id = b.city_id
+        WHERE c.state_slug = ? AND b.category_id = ? AND b.active = 1
+        ORDER BY final_score DESC
+        LIMIT 20
+      `).all(state.slug, cat.id);
+
+      const topCities = db.prepare(`
+        SELECT c.id, c.name, c.slug, COUNT(b.id) as biz_count
+        FROM cities c
+        JOIN businesses b ON b.city_id = c.id AND b.category_id = ? AND b.active = 1
+        WHERE c.state_slug = ? AND c.active = 1
+        GROUP BY c.id
+        ORDER BY biz_count DESC
+        LIMIT 10
+      `).all(cat.id, state.slug);
+
+      const seoContent = getSeoContent('state_category', state.id, cat.id);
+      let faqs = [];
+      if (seoContent && seoContent.faq_json) {
+        try { faqs = JSON.parse(seoContent.faq_json); } catch (e) {}
+      }
+      const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
+      const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: state.name },
+        { name: cat.name }
+      ]);
+
+      return res.render('state-ranking', {
+        state, cat, topBusinesses, topCities, seoContent, faqs, faqSchema, breadcrumbSchema,
+        title: seoContent?.title || `Top ${cat.name} in ${state.name}`,
+        metaDescription: seoContent?.meta_description || `Discover the best ${cat.name} across ${state.name}.`,
+        canonicalUrl: `${BASE_URL}/${state.slug}/${cat.slug}`
+      });
+    }
+  } catch (e) {
+    console.error('State/Area error:', e);
+  }
+
+  return next();
+});
+
+// ============================================
+// PROGRAMMATIC SEO: Variations Catch-all
+// ============================================
+router.get('/:variationSlug', cacheMiddleware, (req, res, next) => {
+  const vSlug = req.params.variationSlug;
+  if (['methodology', 'privacy-policy', 'legal', 'get-listed', 'city', 'rankings', 'news', 'blog', 'admin', 'api', 'digest', 'search'].includes(vSlug)) return next();
+
+  try {
+    const variation = db.prepare(`SELECT * FROM seo_variations WHERE variation_slug=? AND active=1`).get(vSlug);
+    if (variation) {
+      if (variation.mode === 'canonical') {
+        return res.redirect(301, variation.primary_url);
+      } else {
+        let faqs = [];
+        if (variation.faqs) {
+          try { faqs = JSON.parse(variation.faqs); } catch (e) {}
+        }
+        const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
+        
+        return res.render('variation-page', {
+          variation, faqs, faqSchema,
+          title: variation.title,
+          metaDescription: variation.meta_description,
+          canonicalUrl: `${BASE_URL}/${variation.variation_slug}`
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Variation error:', e);
+  }
+  return next();
+});
+
 module.exports = router;
 module.exports.publicCache = publicCache;

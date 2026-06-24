@@ -120,6 +120,72 @@ db.exec(`
   );
 
   -- ============================================
+  -- PROGRAMMATIC SEO ENTITIES
+  -- ============================================
+
+  CREATE TABLE IF NOT EXISTS states (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    active INTEGER DEFAULT 1,
+    description TEXT,
+    meta_description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS areas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    city_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (city_id) REFERENCES cities(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS use_cases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS use_case_businesses (
+    use_case_id INTEGER NOT NULL,
+    business_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (use_case_id, business_id),
+    FOREIGN KEY (use_case_id) REFERENCES use_cases(id),
+    FOREIGN KEY (business_id) REFERENCES businesses(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS seo_variations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    primary_url TEXT NOT NULL,
+    variation_slug TEXT UNIQUE NOT NULL,
+    mode TEXT DEFAULT 'canonical', 
+    title TEXT,
+    meta_description TEXT,
+    h1 TEXT,
+    content TEXT,
+    faqs TEXT,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS seo_templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    template_string TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  -- ============================================
   -- CUSTOM RANKING PAGES
   -- ============================================
 
@@ -465,6 +531,7 @@ safeAddColumn('businesses', 'years_in_business', 'INTEGER DEFAULT 0');
 safeAddColumn('businesses', 'social_url', 'TEXT');
 safeAddColumn('businesses', 'claimed', 'INTEGER DEFAULT 0');
 safeAddColumn('businesses', 'claim_verified_at', 'DATETIME');
+safeAddColumn('businesses', 'area_id', 'INTEGER');
 
 // Ranking scores - add missing columns
 safeAddColumn('ranking_scores', 'auto_score', 'REAL DEFAULT 0');

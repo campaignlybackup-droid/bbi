@@ -77,6 +77,54 @@ function generateSitemap() {
     urls.push({ loc: `${baseUrl}/rankings/${city_slug}/${cat_slug}`, priority: '0.9', changefreq: 'monthly' });
   });
 
+  // PROGRAMMATIC SEO SITEMAP APPENDS
+  try {
+    // 1. States
+    const stateCombos = db.prepare(`
+      SELECT DISTINCT s.slug as state_slug, cat.slug as cat_slug
+      FROM businesses b
+      JOIN cities c ON c.id = b.city_id
+      JOIN states s ON s.slug = c.state_slug
+      JOIN categories cat ON cat.id = b.category_id
+      WHERE b.active = 1 AND c.active = 1 AND cat.active = 1 AND s.active = 1
+    `).all();
+    stateCombos.forEach(({ state_slug, cat_slug }) => {
+      urls.push({ loc: `${baseUrl}/${state_slug}/${cat_slug}`, priority: '0.8', changefreq: 'monthly' });
+    });
+
+    // 2. Areas
+    const areaCombos = db.prepare(`
+      SELECT DISTINCT a.slug as area_slug, cat.slug as cat_slug
+      FROM businesses b
+      JOIN areas a ON a.id = b.area_id
+      JOIN categories cat ON cat.id = b.category_id
+      WHERE b.active = 1 AND a.active = 1 AND cat.active = 1
+    `).all();
+    areaCombos.forEach(({ area_slug, cat_slug }) => {
+      urls.push({ loc: `${baseUrl}/${area_slug}/${cat_slug}`, priority: '0.8', changefreq: 'monthly' });
+    });
+
+    // 3. Use Cases
+    const usecaseCombos = db.prepare(`
+      SELECT DISTINCT cat.slug as cat_slug, uc.slug as usecase_slug, c.slug as city_slug
+      FROM use_case_businesses ucb
+      JOIN businesses b ON b.id = ucb.business_id
+      JOIN use_cases uc ON uc.id = ucb.use_case_id
+      JOIN categories cat ON cat.id = uc.category_id
+      JOIN cities c ON c.id = b.city_id
+      WHERE b.active = 1 AND uc.active = 1 AND cat.active = 1 AND c.active = 1
+    `).all();
+    usecaseCombos.forEach(({ cat_slug, usecase_slug, city_slug }) => {
+      urls.push({ loc: `${baseUrl}/best-${cat_slug}-for-${usecase_slug}-${city_slug}`, priority: '0.9', changefreq: 'monthly' });
+    });
+
+    // 4. Independent Variations
+    const variations = db.prepare(`SELECT variation_slug FROM seo_variations WHERE active=1 AND mode='independent'`).all();
+    variations.forEach(({ variation_slug }) => {
+      urls.push({ loc: `${baseUrl}/${variation_slug}`, priority: '0.8', changefreq: 'monthly' });
+    });
+  } catch(e) { console.error('Sitemap programmatic error:', e); }
+
   // Custom Ranking Pages
   const customPages = db.prepare(`SELECT slug FROM custom_ranking_pages WHERE active=1`).all();
   customPages.forEach(p => {

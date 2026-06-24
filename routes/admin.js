@@ -706,6 +706,8 @@ router.post('/admins/:id/delete', requireAuth, requireSuperAdmin, (req, res) => 
 // ============================================
 // PAGES & SEO
 // ============================================
+router.use('/seo-engine', requireAuth, require('./adminProgrammaticSeo'));
+
 router.get('/pages', requireAuth, (req, res) => {
   const cities = db.prepare('SELECT id, name, slug FROM cities WHERE active=1').all();
   const categories = db.prepare('SELECT id, name, slug FROM categories WHERE active=1').all();

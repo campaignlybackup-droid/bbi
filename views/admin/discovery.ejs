@@ -7,8 +7,8 @@
 </div>
 
 <div class="admin-content">
-  <%- include('partials/flash') %>
-
+  <% if(flash && flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+  <% if(flash && flash.error) { %><div class="alert alert-danger"><%= flash.error %></div><% } %>
   <!-- Search Form -->
   <div class="card mb-4">
     <div class="card-header">
@@ -140,4 +140,4 @@ function toggleAll(source) {
 }
 </style>
 
-<%- include('partials/footer') %>
+<%- include('layout-bottom') %>

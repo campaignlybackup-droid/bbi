@@ -1,0 +1,71 @@
+<%- include('../layout-top') %>
+
+<div class="row mb-4 align-items-center">
+  <div class="col-md-6">
+    <h1 class="h3 text-gray-800"><%= title %></h1>
+  </div>
+  <div class="col-md-6 text-right">
+    <a href="/admin/seo-engine" class="btn btn-secondary btn-sm">Back to Dashboard</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Add New State</h6>
+      </div>
+      <div class="card-body">
+        <form action="/admin/seo-engine/states" method="POST">
+          <div class="form-group">
+            <label>State Name</label>
+            <input type="text" name="name" class="form-control" required placeholder="e.g. Rajasthan">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Meta Description</label>
+            <input type="text" name="meta_description" class="form-control">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Add State</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card shadow mb-4">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Active</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% states.forEach(state => { %>
+                <tr>
+                  <td><%= state.id %></td>
+                  <td><%= state.name %></td>
+                  <td><%= state.slug %></td>
+                  <td>
+                    <span class="badge <%= state.active ? 'badge-success' : 'badge-secondary' %>">
+                      <%= state.active ? 'Yes' : 'No' %>
+                    </span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layout-bottom') %>

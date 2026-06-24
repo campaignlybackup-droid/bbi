@@ -1,0 +1,98 @@
+<%- include('../layout-top') %>
+
+<div class="row mb-4 align-items-center">
+  <div class="col-md-6">
+    <h1 class="h3 text-gray-800">Programmatic SEO Manager</h1>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Variations</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.variations %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">States Active</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.states %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Areas Configured</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.areas %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Use Cases</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.useCases %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-md-12">
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">SEO Generator Panels</h6>
+      </div>
+      <div class="card-body">
+        <div class="list-group">
+          <a href="/admin/seo-engine/states" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">1. State SEO Pages</h5>
+            </div>
+            <p class="mb-1">Manage State-level ranking pages (e.g. /rajasthan/car-detailing)</p>
+          </a>
+          <a href="/admin/seo-engine/areas" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">2. Locality / Area SEO Pages</h5>
+            </div>
+            <p class="mb-1">Manage Area-level pages mapped to cities (e.g. /malviya-nagar-jaipur/dentists)</p>
+          </a>
+          <a href="/admin/seo-engine/use-cases" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">3. Best For Use Cases</h5>
+            </div>
+            <p class="mb-1">Manage intent-based keyword targeting (e.g. /best-gym-for-weight-loss-delhi)</p>
+          </a>
+          <a href="/admin/seo-engine/variations" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">4. Keyword Variations Engine</h5>
+            </div>
+            <p class="mb-1">Create Canonical Aliases and Independent variations (e.g. /top-rated-car-detailing)</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layout-bottom') %>
