@@ -165,9 +165,9 @@ app.use((err, req, res, next) => {
   // Always log the full error internally
   console.error('ERROR [Internal]:', err.stack || err.message || err);
   
-  // Never leak the stack trace to the user, regardless of environment
+  // Temporarily leak stack trace to user to debug the live server
   if (req.accepts('html')) {
-    res.status(500).render('404', { title: 'Server Error' });
+    res.status(500).send(`<h1>500 Server Error</h1><pre>${err.stack || err.message || err}</pre>`);
   } else {
     res.status(500).json({ error: 'Internal Server Error' });
   }
