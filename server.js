@@ -49,6 +49,16 @@ app.set('views', path.join(__dirname, 'views'));
 // ============================================
 // Security & Performance middleware
 // ============================================
+
+// M-99: Globally disable all caching (Server & Client side) per user request
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {

@@ -23,28 +23,8 @@ const NodeCache = require('node-cache');
 const publicCache = new NodeCache({ stdTTL: 900, checkperiod: 120 });
 
 const cacheMiddleware = (req, res, next) => {
-  // Only cache GET requests without query parameters (or handle them safely)
-  if (req.method !== 'GET' || Object.keys(req.query).length > 0) return next();
-  
-  const key = req.originalUrl;
-  const cachedResponse = publicCache.get(key);
-  
-  if (cachedResponse) {
-    res.setHeader('X-Cache', 'HIT');
-    return res.send(cachedResponse);
-  } else {
-    res.setHeader('X-Cache', 'MISS');
-    // Override res.send to intercept the rendered HTML and cache it
-    const originalSend = res.send;
-    res.send = function (body) {
-      // Only cache valid HTML responses, not errors
-      if (res.statusCode === 200) {
-        publicCache.set(key, body);
-      }
-      originalSend.call(this, body);
-    };
-    next();
-  }
+  // M-99: Server-side caching completely bypassed per user request to ensure fresh content always.
+  return next();
 };
 
 // ============================================
