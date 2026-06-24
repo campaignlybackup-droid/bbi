@@ -1471,6 +1471,10 @@ router.get('/csv-import/:id', requireAuth, (req, res) => {
 // AI Operations Manager
 // ============================================
 router.get('/ai-manager', requireAuth, (req, res) => {
+  // Auto-heal missing columns if server boot migration was locked
+  try { db.exec('ALTER TABLE businesses ADD COLUMN ai_sentiment TEXT'); } catch (e) {}
+  try { db.exec('ALTER TABLE businesses ADD COLUMN ai_sentiment_date DATETIME'); } catch (e) {}
+
   const missingDescriptions = db.prepare(`SELECT COUNT(*) as count FROM businesses WHERE (description IS NULL OR description = '') AND verified=1`).get().count;
   const missingFaqs = db.prepare(`
     SELECT COUNT(b.id) as count 
