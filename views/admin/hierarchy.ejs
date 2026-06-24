@@ -1,0 +1,90 @@
+<%- include('layout-top') %>
+
+<div class="admin-header">
+  <div class="admin-header-content">
+    <h1 class="admin-title">Hierarchy & AI Content Manager</h1>
+    <p class="admin-subtitle">Manage the deep geographical structure and trigger AI SEO content generation.</p>
+  </div>
+</div>
+
+<% if(flash && flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+<% if(flash && flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
+
+<style>
+  .tree-city { margin-bottom: 24px; background: white; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+  .tree-city-header { background: #F8FAFC; padding: 16px 20px; font-weight: 600; font-size: 16px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+  .tree-area { margin: 16px; border-left: 3px solid var(--primary-color); padding-left: 16px; }
+  .tree-area-header { font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .tree-category { margin-left: 20px; padding: 8px 12px; background: #F1F5F9; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .btn-magic { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; font-size: 12px; padding: 4px 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: opacity 0.2s; }
+  .btn-magic:hover { opacity: 0.9; color: white; }
+</style>
+
+<div class="hierarchy-container">
+  <% cities.forEach(city => { %>
+    <div class="tree-city">
+      <div class="tree-city-header">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="ti ti-building-community text-primary"></i> 
+          <%= city.name %>
+        </div>
+        <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
+          <input type="hidden" name="type" value="city">
+          <input type="hidden" name="entity_id" value="<%= city.id %>">
+          <button type="submit" class="btn-magic"><i class="ti ti-wand"></i> Generate City SEO</button>
+        </form>
+      </div>
+
+      <% const cityAreas = areas.filter(a => a.city_id === city.id); %>
+      <% if (cityAreas.length === 0) { %>
+        <div style="padding: 16px 20px; color: var(--text-muted); font-size: 14px;">No localities added to this city yet. Manage localities in <a href="/admin/seo-engine/areas">Areas</a>.</div>
+      <% } %>
+
+      <% cityAreas.forEach(area => { %>
+        <div class="tree-area">
+          <div class="tree-area-header">
+            <div style="display:flex;align-items:center;gap:6px">
+              <i class="ti ti-map-pin text-muted"></i> 
+              <%= area.name %>
+            </div>
+            <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
+              <input type="hidden" name="type" value="area">
+              <input type="hidden" name="entity_id" value="<%= area.id %>">
+              <button type="submit" class="btn-magic" style="background:var(--primary-color)"><i class="ti ti-wand"></i> Generate Locality SEO</button>
+            </form>
+          </div>
+
+          <% const areaCats = areaCategories.filter(ac => ac.area_id === area.id); %>
+          <% if (areaCats.length === 0) { %>
+            <div style="margin-left: 20px; color: var(--text-muted); font-size: 13px; font-style: italic;">No businesses assigned to categories in this locality yet.</div>
+          <% } %>
+
+          <% areaCats.forEach(cat => { %>
+            <% const bCount = bizCounts.find(bc => bc.area_id === area.id && bc.category_id === cat.id)?.count || 0; %>
+            <div class="tree-category">
+              <div style="display:flex;align-items:center;gap:6px">
+                <i class="ti ti-folder text-muted"></i> 
+                <%= cat.name %> <span class="badge badge-gray"><%= bCount %> businesses</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <form method="POST" action="/admin/hierarchy/import-businesses" style="margin:0">
+                  <input type="hidden" name="area_id" value="<%= area.id %>">
+                  <input type="hidden" name="category_id" value="<%= cat.id %>">
+                  <button type="submit" class="btn-magic" style="background:#10B981" title="Scrape Google Places to find new businesses"><i class="ti ti-cloud-download"></i> Auto-Import Businesses</button>
+                </form>
+                <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
+                  <input type="hidden" name="type" value="area_category">
+                  <input type="hidden" name="entity_id" value="<%= area.id %>">
+                  <input type="hidden" name="secondary_id" value="<%= cat.id %>">
+                  <button type="submit" class="btn-magic" style="background:#F59E0B"><i class="ti ti-wand"></i> Generate Category SEO</button>
+                </form>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% }) %>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('layout-bottom') %>

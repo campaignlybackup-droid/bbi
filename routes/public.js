@@ -316,17 +316,17 @@ router.get('/city/:citySlug', cacheMiddleware, (req, res) => {
     .get(req.params.citySlug, req.params.citySlug);
   if (!city) return res.status(404).render('404', { title: 'Not Found' });
 
-  // Get categories with businesses in this city
-  const categoryRankings = db.prepare(`
-    SELECT cat.id, cat.name, cat.slug, cat.icon, COUNT(b.id) as biz_count
-    FROM categories cat
-    JOIN businesses b ON b.category_id = cat.id AND b.city_id = ? AND b.active = 1
-    WHERE cat.active = 1
-    GROUP BY cat.id
+  // Get Localities (Areas) in this city that have active businesses
+  const localities = db.prepare(`
+    SELECT a.id, a.name, a.slug, COUNT(b.id) as biz_count
+    FROM areas a
+    LEFT JOIN businesses b ON b.area_id = a.id AND b.active = 1
+    WHERE a.city_id = ? AND a.active = 1
+    GROUP BY a.id
     ORDER BY biz_count DESC
   `).all(city.id);
 
-  // Top businesses in this city
+  // Top businesses in this city (global top)
   const topBusinesses = db.prepare(`
     SELECT b.name, b.slug, b.google_rating, b.google_review_count,
            cat.name as cat_name, cat.slug as cat_slug,
@@ -339,16 +339,76 @@ router.get('/city/:citySlug', cacheMiddleware, (req, res) => {
     LIMIT 10
   `).all(city.id);
 
+  // Check for AI generated SEO content
+  const seoContent = getSeoContent('city', city.id);
+  const pageTitle = seoContent && seoContent.title ? seoContent.title : `Explore Localities in ${city.name} — BBI Rankings`;
+  const metaDescription = seoContent && seoContent.meta_description ? seoContent.meta_description : `Discover the highest-ranked businesses across different localities in ${city.name}, ${city.state}. Independent rankings by Bharat Business Index.`;
+
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: city.name },
   ]);
 
   res.render('city', {
-    city, categoryRankings, topBusinesses, breadcrumbSchema,
-    title: `Top Businesses in ${city.name} — BBI Rankings`,
-    metaDescription: `Discover the highest-ranked businesses in ${city.name}, ${city.state}. Independent rankings by Bharat Business Index.`,
+    city, localities, topBusinesses, breadcrumbSchema, seoContent,
+    title: pageTitle,
+    metaDescription: metaDescription,
     canonicalUrl: `${BASE_URL}/city/${req.params.citySlug}`,
+  });
+});
+
+// ============================================
+// LOCALITY LANDING PAGE
+// ============================================
+router.get('/locality/:areaSlug', cacheMiddleware, (req, res) => {
+  const area = db.prepare(`
+    SELECT a.*, c.name as city_name, c.slug as city_slug 
+    FROM areas a 
+    JOIN cities c ON c.id = a.city_id 
+    WHERE a.slug=? AND a.active=1
+  `).get(req.params.areaSlug);
+  
+  if (!area) return res.status(404).render('404', { title: 'Not Found' });
+
+  // Get Categories that have businesses in this Locality
+  const categoryRankings = db.prepare(`
+    SELECT cat.id, cat.name, cat.slug, cat.icon, COUNT(b.id) as biz_count
+    FROM categories cat
+    JOIN businesses b ON b.category_id = cat.id AND b.area_id = ? AND b.active = 1
+    WHERE cat.active = 1
+    GROUP BY cat.id
+    ORDER BY biz_count DESC
+  `).all(area.id);
+
+  // Top businesses in this Locality
+  const topBusinesses = db.prepare(`
+    SELECT b.name, b.slug, b.google_rating, b.google_review_count,
+           cat.name as cat_name, cat.slug as cat_slug,
+           (SELECT rank_position FROM ranking_history WHERE business_id=b.id ORDER BY ranking_date DESC LIMIT 1) as current_rank,
+           (SELECT final_score FROM ranking_scores WHERE business_id=b.id) as final_score
+    FROM businesses b
+    JOIN categories cat ON cat.id = b.category_id
+    WHERE b.area_id = ? AND b.active = 1
+    ORDER BY final_score DESC
+    LIMIT 10
+  `).all(area.id);
+
+  // Check for AI generated SEO content
+  const seoContent = getSeoContent('area', area.id);
+  const pageTitle = seoContent && seoContent.title ? seoContent.title : `Top Services in ${area.name}, ${area.city_name} — BBI`;
+  const metaDescription = seoContent && seoContent.meta_description ? seoContent.meta_description : `Explore the best ranked businesses and services in ${area.name}, ${area.city_name}.`;
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: area.city_name, url: `/city/${area.city_slug}` },
+    { name: area.name },
+  ]);
+
+  res.render('locality', {
+    area, categoryRankings, topBusinesses, breadcrumbSchema, seoContent,
+    title: pageTitle,
+    metaDescription: metaDescription,
+    canonicalUrl: `${BASE_URL}/locality/${req.params.areaSlug}`,
   });
 });
 
