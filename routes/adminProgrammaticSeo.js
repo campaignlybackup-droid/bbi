@@ -15,7 +15,12 @@ router.get('/', (req, res) => {
     templates: db.prepare(`SELECT COUNT(*) as c FROM seo_templates`).get().c,
   };
 
-  res.render('admin/seo-engine-dashboard', { title: 'Programmatic SEO Manager', stats });
+  res.render('admin/seo-engine-dashboard', { 
+    title: 'Programmatic SEO Manager', 
+    stats,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
 });
 
 // ============================================
@@ -23,7 +28,12 @@ router.get('/', (req, res) => {
 // ============================================
 router.get('/states', (req, res) => {
   const states = db.prepare(`SELECT * FROM states ORDER BY name`).all();
-  res.render('admin/seo-states', { title: 'Manage States', states });
+  res.render('admin/seo-states', { 
+    title: 'Manage States', 
+    states,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
 });
 
 router.post('/states', (req, res) => {
@@ -40,7 +50,13 @@ router.post('/states', (req, res) => {
 router.get('/areas', (req, res) => {
   const areas = db.prepare(`SELECT a.*, c.name as city_name FROM areas a JOIN cities c ON c.id = a.city_id ORDER BY a.name`).all();
   const cities = db.prepare(`SELECT id, name FROM cities WHERE active=1 ORDER BY name`).all();
-  res.render('admin/seo-areas', { title: 'Manage Areas', areas, cities });
+  res.render('admin/seo-areas', { 
+    title: 'Manage Areas', 
+    areas, 
+    cities,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
 });
 
 router.post('/areas', (req, res) => {
@@ -58,7 +74,13 @@ router.post('/areas', (req, res) => {
 router.get('/use-cases', (req, res) => {
   const useCases = db.prepare(`SELECT u.*, c.name as cat_name FROM use_cases u JOIN categories c ON c.id = u.category_id ORDER BY u.name`).all();
   const categories = db.prepare(`SELECT id, name FROM categories WHERE active=1 ORDER BY name`).all();
-  res.render('admin/seo-usecases', { title: 'Manage Use Cases', useCases, categories });
+  res.render('admin/seo-usecases', { 
+    title: 'Manage Use Cases', 
+    useCases, 
+    categories,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
 });
 
 router.post('/use-cases', (req, res) => {
@@ -74,7 +96,12 @@ router.post('/use-cases', (req, res) => {
 // ============================================
 router.get('/variations', (req, res) => {
   const variations = db.prepare(`SELECT * FROM seo_variations ORDER BY created_at DESC`).all();
-  res.render('admin/seo-variations', { title: 'SEO Variations Engine', variations });
+  res.render('admin/seo-variations', { 
+    title: 'SEO Variations Engine', 
+    variations,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
 });
 
 router.post('/variations', (req, res) => {
