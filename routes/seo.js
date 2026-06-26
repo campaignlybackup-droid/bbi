@@ -24,7 +24,7 @@ router.get('/robots.txt', (req, res) => {
 
 // llms.txt
 router.get('/llms.txt', (req, res) => {
-  res.set('Content-Type', 'text/plain');
+  res.set('Content-Type', 'text/markdown; charset=utf-8');
   res.set('Cache-Control', 'public, max-age=86400');
   res.send(seoService.generateLlmsTxt());
 });

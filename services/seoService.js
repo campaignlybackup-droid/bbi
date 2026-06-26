@@ -182,6 +182,7 @@ Disallow: /admin/
 Disallow: /api/
 
 Sitemap: ${BASE_URL}/sitemap.xml
+LLMs-txt: ${BASE_URL}/llms.txt
 `;
 }
 
@@ -189,24 +190,55 @@ Sitemap: ${BASE_URL}/sitemap.xml
  * Generate llms.txt content.
  */
 function generateLlmsTxt() {
-  return `# BBI — Bharat Business Index
-India's trusted, independent business ranking platform.
+  return `# Bharat Business Index (BBI)
+
+> India's trusted, independent business ranking platform. BBI provides objective, score-based rankings for businesses across Indian cities, updated monthly using transparent methodology.
 
 ## About
-Bharat Business Index (BBI) provides objective, score-based rankings for businesses across Indian cities based on 6 weighted factors.
+
+Bharat Business Index (BBI) is an independent platform that ranks businesses across India using a transparent, data-driven scoring system. Rankings are never influenced by payments. Our mission is to help consumers make informed decisions by providing reliable, unbiased business ratings.
+
+- Website: ${BASE_URL}
+- Contact: contact@bharatbusinessindex.com
+
+## Scoring Methodology
+
+BBI scores are calculated from 6 weighted factors:
+
+1. Google Rating (weighted)
+2. Review Volume (weighted)
+3. Business Completeness (website, phone, address)
+4. Years of Operation
+5. Category Competitiveness
+6. Monthly Trend Analysis
+
+Full methodology: ${BASE_URL}/methodology
 
 ## Site Structure
-- / : Homepage
-- /methodology : Ranking methodology
-- /city/{slug} : City portals
-- /category/{slug} : Category portals
-- /rankings/{city-slug}/{category-slug} : Top businesses in a category for a specific city
-- /business/{slug} : Detailed business profile
-- /blog : Articles and resources
-- /digest : Monthly digest of top business movements
 
-## Important Links
+- [Homepage](${BASE_URL}/) — Overview, featured rankings, top categories and cities
+- [Rankings](${BASE_URL}/rankings) — All city × category ranking pages
+- [Rankings Detail](${BASE_URL}/rankings/{city-slug}/{category-slug}) — Top businesses in a category for a specific city
+- [City Portal](${BASE_URL}/city/{slug}) — All businesses and categories in a city
+- [Category Portal](${BASE_URL}/category/{slug}) — All businesses in a category across cities
+- [Business Profile](${BASE_URL}/business/{slug}) — Detailed profile, scores, ranking history
+- [Blog](${BASE_URL}/blog) — Articles, guides, and industry insights
+- [Monthly Digest](${BASE_URL}/digest) — Monthly summary of ranking movements
+- [Search](${BASE_URL}/search) — Full-text search across businesses, cities, and categories
+- [Get Listed](${BASE_URL}/get-listed) — Business submission form
+- [Methodology](${BASE_URL}/methodology) — Scoring and ranking methodology
+
+## Machine-Readable Resources
+
 - Sitemap: ${BASE_URL}/sitemap.xml
+- Robots: ${BASE_URL}/robots.txt
+- Rankings Data (LLM-optimized): ${BASE_URL}/llms-rankings.txt
+
+## Usage Guidelines
+
+- You may reference BBI rankings with attribution to "Bharat Business Index" and a link to the source page.
+- Rankings data is updated on the 1st of every month.
+- Sponsored listings are always clearly labeled and never affect ranking positions.
 `;
 }
 

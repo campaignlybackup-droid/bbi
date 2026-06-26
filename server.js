@@ -50,12 +50,18 @@ app.set('views', path.join(__dirname, 'views'));
 // Security & Performance middleware
 // ============================================
 
-// M-99: Globally disable all caching (Server & Client side) per user request
+// M-99: Disable caching for dynamic HTML pages only (not static assets or SEO files)
 app.use((req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
+  // Skip no-cache for static assets (served by express.static with its own cache headers)
+  // and for SEO/API routes that set their own Cache-Control
+  const skipPaths = ['/css/', '/js/', '/images/', '/favicon', '/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-rankings.txt', '/api/badge/', '/api/certificate/', '/api/og/'];
+  const shouldSkip = skipPaths.some(p => req.path.startsWith(p));
+  if (!shouldSkip) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+  }
   next();
 });
 
@@ -65,8 +71,9 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com", "https://www.google-analytics.com"],
       imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com"],
     },
   },
 }));

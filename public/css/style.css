@@ -1,6 +1,4 @@
-/* Google Fonts — must be first */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
+/* Google Fonts — loaded via preloaded <link> in header.ejs for performance (no @import) */
 /**
  * BBI — Design System v2
  * Mobile-first, premium authority platform.
