@@ -24,6 +24,78 @@ router.get('/', (req, res) => {
 });
 
 // ============================================
+// FIX MIGRATIONS (For Shared Hosting)
+// ============================================
+router.get('/run-migrations', (req, res) => {
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS seo_page_performance (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        page_url TEXT UNIQUE NOT NULL,
+        impressions INTEGER DEFAULT 0,
+        clicks INTEGER DEFAULT 0,
+        ctr REAL DEFAULT 0,
+        position REAL DEFAULT 0,
+        fetched_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_seo_page_perf_url ON seo_page_performance(page_url);
+      CREATE INDEX IF NOT EXISTS idx_seo_page_perf_ctr ON seo_page_performance(ctr);
+      CREATE INDEX IF NOT EXISTS idx_seo_page_perf_impressions ON seo_page_performance(impressions);
+
+      CREATE TABLE IF NOT EXISTS seo_gaps (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        area_slug TEXT NOT NULL,
+        category_slug TEXT NOT NULL,
+        competitor_domain TEXT NOT NULL,
+        competitor_rank INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'pending',
+        discovered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(area_slug, category_slug, competitor_domain)
+      );
+      CREATE INDEX IF NOT EXISTS idx_seo_gaps_area_cat ON seo_gaps(area_slug, category_slug);
+      CREATE INDEX IF NOT EXISTS idx_seo_gaps_status ON seo_gaps(status);
+
+      CREATE TABLE IF NOT EXISTS scheduled_jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        cron_expression TEXT NOT NULL,
+        job_type TEXT NOT NULL,
+        params TEXT DEFAULT '{}',
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      INSERT INTO scheduled_jobs (name, description, cron_expression, job_type)
+      SELECT 'Import Top Localities', 'Re-scrape top 20 localities by GSC impressions', '30 0 * * 1', 'import_businesses_top'
+      WHERE NOT EXISTS (SELECT 1 FROM scheduled_jobs);
+
+      INSERT INTO scheduled_jobs (name, description, cron_expression, job_type)
+      SELECT 'Stale Content Regeneration', 'Re-enqueue AI generation for SEO content older than 30 days', '30 20 * * 6', 'stale_content_regen'
+      WHERE (SELECT COUNT(*) FROM scheduled_jobs) = 1;
+
+      INSERT INTO scheduled_jobs (name, description, cron_expression, job_type)
+      SELECT 'GSC Data Sync', 'Fetch latest Search Console data and populate performance tables', '30 19 * * *', 'gsc_sync'
+      WHERE (SELECT COUNT(*) FROM scheduled_jobs) = 2;
+
+      INSERT INTO scheduled_jobs (name, description, cron_expression, job_type)
+      SELECT 'Competitor Gap Scan', 'Scan SERPs for defined competitors to find missing pages', '30 21 * * 1', 'competitor_gap_finder'
+      WHERE (SELECT COUNT(*) FROM scheduled_jobs) = 3;
+    `);
+    
+    // Reload scheduler with new table
+    require('../services/seoScheduler').reloadAllJobs();
+
+    req.flash('success', 'Database successfully migrated! The new tables are ready.');
+    res.redirect('/admin/seo-engine');
+  } catch (e) {
+    req.flash('error', 'Migration failed: ' + e.message);
+    res.redirect('/admin/seo-engine');
+  }
+});
+
+// ============================================
 // CONFLICT DETECTOR
 // ============================================
 router.get('/conflicts', (req, res) => {
