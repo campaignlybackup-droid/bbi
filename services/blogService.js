@@ -10,7 +10,16 @@ const { generateSlug } = require('../middleware/validation');
  * Create a new blog post.
  */
 function createPost(data, authorId) {
-  const slug = generateSlug(data.title);
+  let slug = generateSlug(data.title);
+  
+  // ensure unique slug
+  let suffix = 1;
+  let baseSlug = slug;
+  while (db.prepare('SELECT id FROM blog_posts WHERE slug = ?').get(slug)) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix++;
+  }
+
   const result = db.prepare(`
     INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, category, tags, author_id, status, meta_description)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?)
@@ -26,7 +35,16 @@ function createPost(data, authorId) {
  * Update an existing blog post.
  */
 function updatePost(id, data) {
-  const slug = generateSlug(data.title);
+  let slug = generateSlug(data.title);
+  
+  // ensure unique slug
+  let suffix = 1;
+  let baseSlug = slug;
+  while (db.prepare('SELECT id FROM blog_posts WHERE slug = ? AND id != ?').get(slug, id)) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix++;
+  }
+
   db.prepare(`
     UPDATE blog_posts SET title=?, slug=?, content=?, excerpt=?, featured_image=?,
     category=?, tags=?, meta_description=?, updated_at=CURRENT_TIMESTAMP

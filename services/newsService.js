@@ -1,6 +1,15 @@
 const db = require('../config/db');
 const { extractKeywords } = require('../utils/keywordUtils');
 
+function getAllNews(activeOnly = false) {
+  let query = 'SELECT * FROM news';
+  if (activeOnly) {
+    query += ' WHERE active = 1';
+  }
+  query += ' ORDER BY created_at DESC';
+  return db.prepare(query).all();
+}
+
 function getNews(limit = 10, offset = 0) {
   return db.prepare('SELECT * FROM news ORDER BY created_at DESC LIMIT ? OFFSET ?').all(limit, offset);
 }
@@ -107,6 +116,7 @@ function toggleNews(id) {
 }
 
 module.exports = {
+  getAllNews,
   getNews,
   getActiveNews,
   getNewsById,
