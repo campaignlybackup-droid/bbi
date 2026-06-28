@@ -19,12 +19,34 @@ const { validateInquiry, validateClaim } = require('../middleware/validation');
 // Extreme Page Speed Caching (In-Memory)
 // ============================================
 const NodeCache = require('node-cache');
-// Cache for 15 minutes (900 seconds)
-const publicCache = new NodeCache({ stdTTL: 900, checkperiod: 120 });
+// Cache for 5 minutes (300 seconds), check every 60 seconds
+const publicCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
 const cacheMiddleware = (req, res, next) => {
-  // M-99: Server-side caching completely bypassed per user request to ensure fresh content always.
-  return next();
+  // Only cache GET requests
+  if (req.method !== 'GET') return next();
+  
+  const cacheKey = req.originalUrl || req.url;
+  const cached = publicCache.get(cacheKey);
+  
+  if (cached) {
+    // Serve from cache — add header for debugging
+    res.setHeader('X-Cache', 'HIT');
+    return res.send(cached);
+  }
+  
+  // Intercept res.send to cache the response
+  const originalSend = res.send.bind(res);
+  res.send = (body) => {
+    // Only cache successful HTML responses
+    if (res.statusCode === 200 && typeof body === 'string') {
+      publicCache.set(cacheKey, body);
+    }
+    res.setHeader('X-Cache', 'MISS');
+    return originalSend(body);
+  };
+  
+  next();
 };
 
 // ============================================

@@ -50,18 +50,28 @@ app.set('views', path.join(__dirname, 'views'));
 // Security & Performance middleware
 // ============================================
 
-// M-99: Disable caching for dynamic HTML pages only (not static assets or SEO files)
+// M-99: Smart cache headers — public pages get short cache, admin stays no-cache
 app.use((req, res, next) => {
-  // Skip no-cache for static assets (served by express.static with its own cache headers)
-  // and for SEO/API routes that set their own Cache-Control
+  // Static assets and SEO files have their own cache headers (set by express.static or route handlers)
   const skipPaths = ['/css/', '/js/', '/images/', '/favicon', '/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-rankings.txt', '/api/badge/', '/api/certificate/', '/api/og/'];
   const shouldSkip = skipPaths.some(p => req.path.startsWith(p));
-  if (!shouldSkip) {
+  
+  if (shouldSkip) {
+    // Let express.static or route handler set cache headers
+    return next();
+  }
+  
+  if (req.path.startsWith('/admin')) {
+    // Admin pages: never cache (dynamic content, forms, session-dependent)
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
+  } else {
+    // Public pages: short cache with stale-while-revalidate for smooth UX
+    // 5 min browser cache, 10 min CDN/proxy cache, serve stale up to 24h while revalidating
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400');
   }
+  
   next();
 });
 
@@ -107,10 +117,12 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(methodOverride('_method'));
 
-// Static files with cache headers
+// Static files with aggressive cache headers
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: IS_PROD ? '1y' : 0,
   etag: true,
+  lastModified: true,
+  immutable: IS_PROD, // Tell browsers these files never change (cache-busted via filename changes)
 }));
 
 // ============================================

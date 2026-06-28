@@ -1,4 +1,4 @@
-<%# BBI — Shared Header Partial %>
+<%# BBI — Shared Header Partial (Performance Optimized) %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,23 +16,99 @@
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-  <!-- Google Fonts — preloaded with font-display=swap for fast text rendering -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
+  <!-- CRITICAL CSS — Inlined for instant first paint (no render-blocking request) -->
+  <style>
+    /* Design tokens — needed for every element */
+    :root {
+      --navy: #0D2E5E; --navy-dark: #091f42; --navy-light: #1a4a8a;
+      --gold: #E8A020; --gold-dark: #c8871a; --gold-light: #f5c44a;
+      --bg: #F5F6F8; --bg-card: #ffffff; --bg-hover: #fafbfc;
+      --text-primary: #1A1A2E; --text-secondary: #4A5568; --text-muted: #5a6b82;
+      --text-light: rgba(255,255,255,.85);
+      --border: #e2e6ea; --border-light: #f0f2f5;
+      --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+      --error: #dc2626; --error-bg: #fef2f2; --error-border: #fecaca;
+      --info-bg: #eff6ff; --info-border: #bfdbfe;
+      --warn-bg: #fef9ec; --warn-border: #fcd34d; --warn-text: #92400e;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-size-xs: 0.6875rem; --font-size-sm: 0.8125rem;
+      --font-size-base: 0.9375rem; --font-size-md: 1rem;
+      --font-size-lg: 1.125rem; --font-size-xl: 1.375rem;
+      --font-size-2xl: 1.75rem; --font-size-3xl: 2.25rem;
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+      --space-12: 48px; --space-16: 64px;
+      --radius-sm: 6px; --radius-md: 9px; --radius-lg: 12px;
+      --radius-xl: 16px; --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+      --transition: 0.15s ease; --transition-slow: 0.3s ease;
+    }
+    /* Reset & base — prevents flash of unstyled content */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text-secondary);
+      font-size: var(--font-size-base); line-height: 1.6; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    /* Nav — above the fold, must render instantly */
+    .nav {
+      background: var(--navy); height: 56px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 var(--space-4);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: var(--font-size-md); font-weight: 700; color: #fff; white-space: nowrap; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; align-items: center; gap: var(--space-5); }
+    .nav-links a { font-size: var(--font-size-sm); color: var(--text-light); font-weight: 500; }
+    .nav-cta { color: var(--gold) !important; border: 1px solid var(--gold); padding: 5px 14px; border-radius: var(--radius-sm); font-weight: 600 !important; }
+    .nav-toggle { display: none; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; padding: var(--space-2); }
+    @media (max-width: 767px) {
+      .nav-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--navy-dark); flex-direction: column; padding: var(--space-4); gap: var(--space-3); z-index: 99; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: var(--space-3) 0; font-size: var(--font-size-base); }
+    }
+    @media (min-width: 768px) { .nav { padding: 0 var(--space-10); } }
+    /* Hero — above the fold on homepage */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 50%, #0a1628 100%);
+      padding: var(--space-12) var(--space-4) var(--space-10); text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero h1 { font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 800; color: #fff; margin-bottom: var(--space-3); line-height: 1.2; position: relative; z-index: 1; letter-spacing: -0.02em; }
+    .hero p { font-size: var(--font-size-base); color: rgba(255,255,255,.8); margin-bottom: var(--space-6); max-width: 520px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
+    /* Page header — above the fold on inner pages */
+    .page-header { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%); padding: var(--space-6) var(--space-4); }
+    .page-header h1 { font-size: clamp(1.25rem, 3vw, 1.625rem); font-weight: 800; color: #fff; margin-bottom: var(--space-1); }
+    .page-header p { font-size: var(--font-size-sm); color: rgba(255,255,255,.55); }
+    @media (min-width: 768px) { .page-header { padding: var(--space-6) var(--space-10); } }
+    /* Section layout (above fold on many pages) */
+    .section { padding: var(--space-6) var(--space-4); max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: var(--font-size-xs); font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: var(--space-1); }
+    .section-title { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-1); }
+    @media (min-width: 768px) { .section { padding: var(--space-10) var(--space-10); } .section-title { font-size: var(--font-size-xl); } }
+  </style>
 
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="/css/style.css">
+  <!-- Google Fonts — reduced weights (3 instead of 5), non-blocking -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"></noscript>
 
-  <!-- Tabler Icons — non-blocking -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></noscript>
+  <!-- Main stylesheet — non-render-blocking via media swap -->
+  <link rel="stylesheet" href="/css/style.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/style.css"></noscript>
 
-  <!-- Favicon -->
+  <!-- Tabler Icons — pinned version (not @latest which prevents caching), non-blocking -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css"></noscript>
+
+  <!-- Favicon — optimized sizes -->
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/favicon.png" type="image/png">
 
@@ -54,17 +130,47 @@
   <% if(typeof metaDescription !== 'undefined') { %><meta name="twitter:description" content="<%= metaDescription %>"><% } %>
   <% if(typeof ogImage !== 'undefined' && ogImage) { %><meta name="twitter:image" content="<%= ogImage %>"><% } %>
 
-  <!-- Google tag (gtag.js) — deferred to not block first paint -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YP8QCHTR1B"></script>
+  <!-- Google Analytics — deferred until after page is interactive -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-YP8QCHTR1B', { send_page_view: true });
+    // Load gtag after the page is fully interactive to avoid blocking first paint
+    function loadGtag() {
+      var s = document.createElement('script');
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-YP8QCHTR1B';
+      s.async = true;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-YP8QCHTR1B', { send_page_view: true });
+    }
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(loadGtag);
+    } else {
+      setTimeout(loadGtag, 2000);
+    }
   </script>
 
-  <!-- Google AdSense — loaded after page render -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1420323757897502" crossorigin="anonymous"></script>
+  <!-- Google AdSense — deferred to not block rendering -->
+  <script>
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(function() {
+        var s = document.createElement('script');
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1420323757897502';
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        document.head.appendChild(s);
+      });
+    } else {
+      setTimeout(function() {
+        var s = document.createElement('script');
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1420323757897502';
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        document.head.appendChild(s);
+      }, 3000);
+    }
+  </script>
 </head>
 <body>
 
