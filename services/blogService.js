@@ -24,9 +24,9 @@ function createPost(data, authorId) {
     INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, category, tags, author_id, status, meta_description)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?)
   `).run(
-    data.title, slug, data.content || '', data.excerpt || '',
+    data.title || 'Untitled', slug, data.content || '', data.excerpt || '',
     data.featured_image || '', data.category || '', data.tags || '',
-    authorId, data.meta_description || ''
+    authorId || null, data.meta_description || ''
   );
   return { id: result.lastInsertRowid, slug };
 }
@@ -50,7 +50,7 @@ function updatePost(id, data) {
     category=?, tags=?, meta_description=?, updated_at=CURRENT_TIMESTAMP
     WHERE id=?
   `).run(
-    data.title, slug, data.content || '', data.excerpt || '',
+    data.title || 'Untitled', slug, data.content || '', data.excerpt || '',
     data.featured_image || '', data.category || '', data.tags || '',
     data.meta_description || '', id
   );

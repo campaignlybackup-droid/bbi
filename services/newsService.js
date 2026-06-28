@@ -65,7 +65,7 @@ function getRelatedNews(newsId, title, limit = 3) {
 
 function createNews(data) {
   const { title, content, image, active } = data;
-  let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  let slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   
   // ensure unique slug
   let suffix = 1;
@@ -76,14 +76,14 @@ function createNews(data) {
   }
 
   const result = db.prepare('INSERT INTO news (title, slug, content, image, active) VALUES (?, ?, ?, ?, ?)').run(
-    title, slug, content, image, active ? 1 : 0
+    title || 'Untitled', slug, content || '', image || '', active ? 1 : 0
   );
   return result.lastInsertRowid;
 }
 
 function updateNews(id, data) {
   const { title, content, image, active } = data;
-  let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  let slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   
   // ensure unique slug
   let suffix = 1;
@@ -95,11 +95,11 @@ function updateNews(id, data) {
 
   if (image) {
     db.prepare('UPDATE news SET title=?, slug=?, content=?, image=?, active=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(
-      title, slug, content, image, active ? 1 : 0, id
+      title || 'Untitled', slug, content || '', image || '', active ? 1 : 0, id
     );
   } else {
     db.prepare('UPDATE news SET title=?, slug=?, content=?, active=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(
-      title, slug, content, active ? 1 : 0, id
+      title || 'Untitled', slug, content || '', active ? 1 : 0, id
     );
   }
 }
