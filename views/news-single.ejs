@@ -20,6 +20,27 @@
     </div>
   </article>
   
+  <% if (relatedNews && relatedNews.length > 0) { %>
+    <div style="padding-top:var(--space-8);border-top:1px solid var(--border-light);margin-top:var(--space-8)">
+      <h3 style="margin-top:0;margin-bottom:var(--space-6);font-size:24px">Related News</h3>
+      <div class="grid">
+        <% relatedNews.forEach(rn => { %>
+          <a href="/news/<%= rn.slug %>" class="card" style="text-decoration:none;color:inherit;transition:transform 0.2s">
+            <% if (rn.image) { %>
+              <div style="height:140px;border-radius:var(--radius-md) var(--radius-md) 0 0;overflow:hidden;margin:-var(--space-4) -var(--space-4) var(--space-4) -var(--space-4)">
+                <img src="<%= rn.image %>" alt="<%= rn.title %>" style="width:100%;height:100%;object-fit:cover">
+              </div>
+            <% } %>
+            <div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-bottom:var(--space-2)">
+              <%= new Date(rn.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) %>
+            </div>
+            <h4 style="margin:0;font-size:var(--font-size-md);color:var(--text-primary);line-height:1.4"><%= rn.title %></h4>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+
   <div style="margin-top:var(--space-8);text-align:center">
     <a href="/news" class="btn btn-outline"><i class="ti ti-arrow-left"></i> Back to News</a>
   </div>

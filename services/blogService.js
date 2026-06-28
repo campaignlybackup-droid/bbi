@@ -138,20 +138,56 @@ function getPosts(options = {}) {
   return { posts, total };
 }
 
+const { extractKeywords } = require('../utils/keywordUtils');
+
 /**
- * Get related posts by category or tags.
+ * Get related posts by category, tags, or keywords in title.
  */
 function getRelatedPosts(postId, limit = 3) {
-  const post = db.prepare(`SELECT category, tags FROM blog_posts WHERE id=?`).get(postId);
+  const post = db.prepare(`SELECT title, category, tags FROM blog_posts WHERE id=?`).get(postId);
   if (!post) return [];
 
-  return db.prepare(`
-    SELECT id, title, slug, excerpt, featured_image, category, published_at
-    FROM blog_posts
-    WHERE id != ? AND status = 'published'
-      AND (category = ? OR tags LIKE ?)
-    ORDER BY published_at DESC LIMIT ?
-  `).all(postId, post.category || '', `%${(post.tags || '').split(',')[0]}%`, limit);
+  // Extract keywords from title
+  const keywords = extractKeywords(post.title);
+  
+  // Also add any explicitly defined tags
+  if (post.tags) {
+    post.tags.split(',').map(t => t.trim().toLowerCase()).forEach(t => {
+      if (t.length > 2 && !keywords.includes(t)) keywords.push(t);
+    });
+  }
+
+  let sql = 'SELECT id, title, slug, excerpt, featured_image, category, published_at FROM blog_posts WHERE id != ? AND status = ? AND (category = ?';
+  const conditions = [];
+  const params = [postId, 'published', post.category || ''];
+
+  if (keywords.length > 0) {
+    keywords.forEach(kw => {
+      conditions.push('title LIKE ? OR tags LIKE ?');
+      params.push(`%${kw}%`, `%${kw}%`);
+    });
+    sql += ' OR ' + conditions.join(' OR ');
+  }
+  
+  sql += ') ORDER BY published_at DESC LIMIT ?';
+  params.push(limit);
+
+  let results = db.prepare(sql).all(...params);
+  
+  // Fallback to recent if we don't have enough
+  if (results.length < limit) {
+    const existingIds = results.map(r => r.id);
+    existingIds.push(postId);
+    
+    const placeholders = existingIds.map(() => '?').join(',');
+    const fallbackSql = `SELECT id, title, slug, excerpt, featured_image, category, published_at FROM blog_posts WHERE id NOT IN (${placeholders}) AND status = 'published' ORDER BY published_at DESC LIMIT ?`;
+    const fallbackParams = [...existingIds, limit - results.length];
+    
+    const fallbackResults = db.prepare(fallbackSql).all(...fallbackParams);
+    results = results.concat(fallbackResults);
+  }
+
+  return results;
 }
 
 /**

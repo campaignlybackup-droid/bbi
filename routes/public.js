@@ -659,6 +659,8 @@ router.get('/news/:slug', cacheMiddleware, (req, res) => {
   const newsItem = newsService.getNewsBySlug(req.params.slug);
   if (!newsItem) return res.status(404).render('404', { title: 'Not Found' });
 
+  const relatedNews = newsService.getRelatedNews(newsItem.id, newsItem.title, 3);
+
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'News', url: '/news' },
@@ -666,7 +668,7 @@ router.get('/news/:slug', cacheMiddleware, (req, res) => {
   ]);
 
   res.render('news-single', {
-    newsItem, breadcrumbSchema,
+    newsItem, relatedNews, breadcrumbSchema,
     title: `${newsItem.title} — BBI News`,
     metaDescription: newsItem.content.substring(0, 150).replace(/<[^>]+>/g, '') + '...',
     canonicalUrl: `${BASE_URL}/news/${newsItem.slug}`,
