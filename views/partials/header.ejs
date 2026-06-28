@@ -171,6 +171,12 @@
       }, 3000);
     }
   </script>
+
+  <% if (typeof schemaJson !== 'undefined' && schemaJson) { %>
+  <script type="application/ld+json">
+    <%- schemaJson %>
+  </script>
+  <% } %>
 </head>
 <body>
 

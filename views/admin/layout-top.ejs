@@ -26,7 +26,10 @@
       <div class="sidebar-section">Content CMS</div>
       <a href="/admin/pages" class="<%= currentPath.startsWith('/admin/pages')?'active':'' %>"><i class="ti ti-seo"></i> SEO Pages</a>
       <a href="/admin/hierarchy" class="<%= currentPath.startsWith('/admin/hierarchy')?'active':'' %>"><i class="ti ti-sitemap"></i> Hierarchy Manager</a>
-      <a href="/admin/seo-engine" class="<%= currentPath.startsWith('/admin/seo-engine')?'active':'' %>"><i class="ti ti-affiliate"></i> Programmatic SEO</a>
+      <a href="/admin/seo-engine" class="<%= currentPath.startsWith('/admin/seo-engine') && !currentPath.includes('conflicts') && !currentPath.includes('gaps') && !currentPath.includes('jobs') ? 'active':'' %>"><i class="ti ti-affiliate"></i> Programmatic SEO</a>
+      <a href="/admin/seo-engine/conflicts" class="<%= currentPath.startsWith('/admin/seo-engine/conflicts')?'active':'' %>"><i class="ti ti-alert-triangle"></i> SEO Conflicts</a>
+      <a href="/admin/seo-engine/gaps" class="<%= currentPath.startsWith('/admin/seo-engine/gaps')?'active':'' %>"><i class="ti ti-target"></i> Gap Opportunities</a>
+      <a href="/admin/seo-engine/jobs" class="<%= currentPath.startsWith('/admin/seo-engine/jobs')?'active':'' %>"><i class="ti ti-clock-play"></i> Scheduled Jobs</a>
       <a href="/admin/blog" class="<%= currentPath.startsWith('/admin/blog')?'active':'' %>"><i class="ti ti-article"></i> Blog Posts</a>
       <a href="/admin/news" class="<%= currentPath.startsWith('/admin/news')?'active':'' %>"><i class="ti ti-news"></i> News Articles</a>
       <a href="/admin/digests" class="<%= currentPath.startsWith('/admin/digests')?'active':'' %>"><i class="ti ti-calendar-event"></i> Monthly Digests</a>

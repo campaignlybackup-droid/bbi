@@ -913,6 +913,7 @@ router.post('/blog', requireAuth, (req, res) => {
     req.flash('success', 'Post created.');
     res.redirect('/admin/blog');
   } catch (e) {
+    console.error("Blog creation error:", e);
     req.flash('error', e.message);
     res.redirect('/admin/blog/new');
   }

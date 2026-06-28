@@ -24,6 +24,53 @@ router.get('/', (req, res) => {
 });
 
 // ============================================
+// CONFLICT DETECTOR
+// ============================================
+router.get('/conflicts', (req, res) => {
+  const seoConflictService = require('../../services/seoConflictService');
+  const conflicts = seoConflictService.detectConflicts();
+  res.render('admin/seo-conflicts', {
+    title: 'SEO Conflicts',
+    conflicts,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+// ============================================
+// GAPS AND JOBS
+// ============================================
+router.get('/gaps', (req, res) => {
+  const gaps = db.prepare(`SELECT * FROM seo_gaps WHERE status='pending' ORDER BY discovered_at DESC`).all();
+  res.render('admin/seo-gaps', {
+    title: 'Competitor Gaps',
+    gaps,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.post('/gaps/:id/create', (req, res) => {
+  // Mark gap as resolved and enqueue AI job
+  db.prepare(`UPDATE seo_gaps SET status='resolved' WHERE id=?`).run(req.params.id);
+  const gap = db.prepare(`SELECT * FROM seo_gaps WHERE id=?`).get(req.params.id);
+  if (gap) {
+    const jobQueue = require('../../services/ai/jobQueue');
+    jobQueue.enqueue('generate_area_category_content', { area_slug: gap.area_slug, cat_slug: gap.category_slug });
+    req.flash('success', 'Page creation and content generation queued.');
+  }
+  res.redirect('/admin/seo-engine/gaps');
+});
+
+router.get('/jobs', (req, res) => {
+  res.render('admin/scheduled-jobs', {
+    title: 'Scheduled Jobs',
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+// ============================================
 // STATES
 // ============================================
 router.get('/states', (req, res) => {

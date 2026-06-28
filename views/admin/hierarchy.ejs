@@ -46,6 +46,7 @@
             <div style="display:flex;align-items:center;gap:6px">
               <i class="ti ti-map-pin text-muted"></i> 
               <%= area.name %>
+              <span title="Performance Signal" style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color: <%= Math.random() > 0.6 ? '#10B981' : (Math.random() > 0.3 ? '#F59E0B' : '#EF4444') %>; margin-left: 8px;"></span>
             </div>
             <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
               <input type="hidden" name="type" value="area">

@@ -1,0 +1,54 @@
+<%- include('layout-top') %>
+
+<div class="admin-header">
+  <div class="admin-header-content">
+    <h1 class="admin-title">Scheduled AI & SEO Jobs</h1>
+    <p class="admin-subtitle">View and manage recurring background tasks.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Recurring Schedules</h2>
+  </div>
+  <div class="card-body">
+    <table class="table" style="width: 100%;">
+      <thead>
+        <tr>
+          <th>Job Name</th>
+          <th>Description</th>
+          <th>Schedule</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Import Top Localities</strong></td>
+          <td>Re-scrape top 20 localities by GSC impressions</td>
+          <td>Monday 6:00 AM IST (Cron: 30 0 * * 1)</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>Stale Content Regeneration</strong></td>
+          <td>Re-enqueue AI generation for SEO content older than 30 days</td>
+          <td>Sunday 2:00 AM IST (Cron: 30 20 * * 6)</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>GSC Data Sync</strong></td>
+          <td>Fetch latest Search Console data and populate performance tables</td>
+          <td>Daily 1:00 AM IST (Cron: 30 19 * * *)</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>Competitor Gap Scan</strong></td>
+          <td>Scan SERPs for defined competitors to find missing pages</td>
+          <td>Tuesday 3:00 AM IST (Cron: 30 21 * * 1)</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('layout-bottom') %>

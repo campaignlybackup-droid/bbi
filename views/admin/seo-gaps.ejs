@@ -1,0 +1,55 @@
+<%- include('layout-top') %>
+
+<div class="admin-header">
+  <div class="admin-header-content">
+    <h1 class="admin-title">Competitor Gap Opportunities</h1>
+    <p class="admin-subtitle">Areas and categories where competitors rank but we lack a dedicated programmatic page.</p>
+  </div>
+</div>
+
+<% if(flash && flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+<% if(flash && flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Discovered Gaps</h2>
+  </div>
+  <div class="card-body">
+    <% if (!gaps || gaps.length === 0) { %>
+      <div class="alert alert-success" style="margin: 0;">
+        <i class="ti ti-check"></i> No gap opportunities found.
+      </div>
+    <% } else { %>
+      <table class="table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th>Area / Locality</th>
+            <th>Category</th>
+            <th>Competitor Domain</th>
+            <th>Competitor Rank</th>
+            <th>Discovered At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% gaps.forEach(gap => { %>
+            <tr>
+              <td><strong><%= gap.area_slug %></strong></td>
+              <td><%= gap.category_slug %></td>
+              <td><%= gap.competitor_domain %></td>
+              <td>#<%= gap.competitor_rank %></td>
+              <td style="color: var(--text-muted);"><%= new Date(gap.discovered_at).toLocaleDateString() %></td>
+              <td>
+                <form method="POST" action="/admin/seo-engine/gaps/<%= gap.id %>/create" style="margin:0">
+                  <button type="submit" class="btn btn-sm btn-primary">Create Page & Generate Content</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<%- include('layout-bottom') %>

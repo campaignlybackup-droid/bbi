@@ -227,6 +227,9 @@ cron.schedule('0 2 1 * *', async () => {
   timezone: 'Asia/Kolkata',
 });
 
+// Initialize Programmatic SEO Scheduler
+require('./services/seoScheduler').init();
+
 // ============================================
 // Start server
 // ============================================
