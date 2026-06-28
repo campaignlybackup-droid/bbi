@@ -27,7 +27,7 @@ router.get('/', (req, res) => {
 // CONFLICT DETECTOR
 // ============================================
 router.get('/conflicts', (req, res) => {
-  const seoConflictService = require('../../services/seoConflictService');
+  const seoConflictService = require('../services/seoConflictService');
   const conflicts = seoConflictService.detectConflicts();
   res.render('admin/seo-conflicts', {
     title: 'SEO Conflicts',
@@ -55,7 +55,7 @@ router.post('/gaps/:id/create', (req, res) => {
   db.prepare(`UPDATE seo_gaps SET status='resolved' WHERE id=?`).run(req.params.id);
   const gap = db.prepare(`SELECT * FROM seo_gaps WHERE id=?`).get(req.params.id);
   if (gap) {
-    const jobQueue = require('../../services/ai/jobQueue');
+    const jobQueue = require('../services/ai/jobQueue');
     jobQueue.enqueue('generate_area_category_content', { area_slug: gap.area_slug, cat_slug: gap.category_slug });
     req.flash('success', 'Page creation and content generation queued.');
   }
@@ -168,7 +168,7 @@ router.post('/variations', (req, res) => {
 router.post('/generate-content', (req, res) => {
   const { entity_type, entity_id } = req.body;
   // Push to jobQueue
-  const jobQueue = require('../../services/ai/jobQueue');
+  const jobQueue = require('../services/ai/jobQueue');
   jobQueue.enqueue(`generate_${entity_type}_content`, { id: entity_id });
   req.flash('success', `AI generation queued for ${entity_type} ID ${entity_id}`);
   res.redirect('back');
