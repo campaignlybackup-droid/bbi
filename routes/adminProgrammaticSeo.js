@@ -63,11 +63,63 @@ router.post('/gaps/:id/create', (req, res) => {
 });
 
 router.get('/jobs', (req, res) => {
+  const jobs = db.prepare(`SELECT * FROM scheduled_jobs ORDER BY created_at ASC`).all();
   res.render('admin/scheduled-jobs', {
     title: 'Scheduled Jobs',
+    jobs,
     admin: req.session,
     flash: { success: req.flash('success'), error: req.flash('error') }
   });
+});
+
+router.post('/jobs/add', (req, res) => {
+  try {
+    const { name, description, cron_expression, job_type } = req.body;
+    db.prepare(`INSERT INTO scheduled_jobs (name, description, cron_expression, job_type) VALUES (?, ?, ?, ?)`).run(name, description, cron_expression, job_type);
+    require('../../services/seoScheduler').reloadAllJobs();
+    req.flash('success', 'Job added and scheduler reloaded.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-engine/jobs');
+});
+
+router.post('/jobs/:id/edit', (req, res) => {
+  try {
+    const { name, description, cron_expression, job_type } = req.body;
+    db.prepare(`UPDATE scheduled_jobs SET name=?, description=?, cron_expression=?, job_type=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`).run(name, description, cron_expression, job_type, req.params.id);
+    require('../../services/seoScheduler').reloadAllJobs();
+    req.flash('success', 'Job updated and scheduler reloaded.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-engine/jobs');
+});
+
+router.post('/jobs/:id/toggle', (req, res) => {
+  try {
+    const job = db.prepare(`SELECT is_active FROM scheduled_jobs WHERE id=?`).get(req.params.id);
+    const newStatus = job.is_active ? 0 : 1;
+    db.prepare(`UPDATE scheduled_jobs SET is_active=? WHERE id=?`).run(newStatus, req.params.id);
+    require('../../services/seoScheduler').reloadAllJobs();
+    req.flash('success', `Job turned ${newStatus ? 'ON' : 'OFF'}.`);
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-engine/jobs');
+});
+
+router.post('/jobs/:id/run', (req, res) => {
+  try {
+    const job = db.prepare(`SELECT * FROM scheduled_jobs WHERE id=?`).get(req.params.id);
+    if (job) {
+      require('../../services/seoScheduler').executeJobAction(job);
+      req.flash('success', 'Job execution triggered manually.');
+    }
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-engine/jobs');
 });
 
 // ============================================

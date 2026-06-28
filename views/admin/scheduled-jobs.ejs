@@ -3,52 +3,168 @@
 <div class="admin-header">
   <div class="admin-header-content">
     <h1 class="admin-title">Scheduled AI & SEO Jobs</h1>
-    <p class="admin-subtitle">View and manage recurring background tasks.</p>
+    <p class="admin-subtitle">Manage background tasks that run automatically on a set schedule.</p>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('addJobModal').style.display='block'">
+    <i class="ti ti-plus"></i> Add New Job
+  </button>
+</div>
+
+<% if(flash && flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+<% if(flash && flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
+
+<style>
+  .job-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: var(--transition); display: flex; flex-direction: column; height: 100%; }
+  .job-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-light); }
+  .job-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .job-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .job-type-badge { font-size: 12px; background: var(--bg); color: var(--text-secondary); padding: 4px 8px; border-radius: 4px; font-family: monospace; }
+  .job-desc { color: var(--text-secondary); font-size: 14px; flex-grow: 1; margin-bottom: 20px; line-height: 1.5; }
+  .job-meta { background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px; }
+  .job-meta-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--navy); }
+  .job-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; margin-top: auto; }
+  
+  /* Toggle Switch */
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+  input:checked + .slider { background-color: var(--success); }
+  input:checked + .slider:before { transform: translateX(20px); }
+  
+  .job-buttons { display: flex; gap: 8px; }
+  
+  /* Modal */
+  .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+  .modal-content { background-color: #fefefe; margin: 5% auto; padding: 24px; border: 1px solid #888; width: 500px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+  .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+  .close:hover, .close:focus { color: black; text-decoration: none; }
+</style>
+
+<div class="row">
+  <% jobs.forEach(job => { %>
+    <div class="col-md-6 mb-4">
+      <div class="job-card <%= job.is_active ? '' : 'opacity-75' %>">
+        <div class="job-header">
+          <div>
+            <h3 class="job-title"><%= job.name %></h3>
+            <div class="job-type-badge mt-2"><i class="ti ti-code"></i> <%= job.job_type %></div>
+          </div>
+          <form method="POST" action="/admin/seo-engine/jobs/<%= job.id %>/toggle" style="margin:0">
+            <label class="switch" title="Toggle Job Active/Inactive">
+              <input type="checkbox" onchange="this.form.submit()" <%= job.is_active ? 'checked' : '' %>>
+              <span class="slider"></span>
+            </label>
+          </form>
+        </div>
+        <div class="job-desc"><%= job.description %></div>
+        <div class="job-meta">
+          <div class="job-meta-item">
+            <i class="ti ti-clock"></i>
+            <strong>Schedule (Cron):</strong> <code style="background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid #ccc;"><%= job.cron_expression %></code>
+          </div>
+        </div>
+        <div class="job-actions">
+          <form method="POST" action="/admin/seo-engine/jobs/<%= job.id %>/run" style="margin:0">
+            <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('Trigger this job immediately in the background?');">
+              <i class="ti ti-player-play"></i> Run Now
+            </button>
+          </form>
+          <div class="job-buttons">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(<%= JSON.stringify(job) %>)">
+              <i class="ti ti-edit"></i> Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+  <% if(jobs.length === 0) { %>
+    <div class="col-12">
+      <div class="alert alert-info">No scheduled jobs configured.</div>
+    </div>
+  <% } %>
+</div>
+
+<!-- Add Job Modal -->
+<div id="addJobModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('addJobModal').style.display='none'">&times;</span>
+    <h2 class="mb-4">Add New Scheduled Job</h2>
+    <form method="POST" action="/admin/seo-engine/jobs/add">
+      <div class="form-group">
+        <label>Job Name</label>
+        <input type="text" name="name" class="form-control" required placeholder="e.g. Weekly Sitemap Ping">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" class="form-control" rows="2" placeholder="Explain what this job does..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Cron Expression <a href="https://crontab.guru/" target="_blank" style="font-size:12px; float:right;">Help <i class="ti ti-external-link"></i></a></label>
+        <input type="text" name="cron_expression" class="form-control" required placeholder="* * * * *">
+        <small class="text-muted">Format: min hour dom month dow</small>
+      </div>
+      <div class="form-group">
+        <label>Job Type Identifier</label>
+        <input type="text" name="job_type" class="form-control" required placeholder="e.g. sitemap_ping">
+      </div>
+      <div class="text-right mt-4">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addJobModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Job</button>
+      </div>
+    </form>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Recurring Schedules</h2>
-  </div>
-  <div class="card-body">
-    <table class="table" style="width: 100%;">
-      <thead>
-        <tr>
-          <th>Job Name</th>
-          <th>Description</th>
-          <th>Schedule</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Import Top Localities</strong></td>
-          <td>Re-scrape top 20 localities by GSC impressions</td>
-          <td>Monday 6:00 AM IST (Cron: 30 0 * * 1)</td>
-          <td><span class="badge badge-success">Active</span></td>
-        </tr>
-        <tr>
-          <td><strong>Stale Content Regeneration</strong></td>
-          <td>Re-enqueue AI generation for SEO content older than 30 days</td>
-          <td>Sunday 2:00 AM IST (Cron: 30 20 * * 6)</td>
-          <td><span class="badge badge-success">Active</span></td>
-        </tr>
-        <tr>
-          <td><strong>GSC Data Sync</strong></td>
-          <td>Fetch latest Search Console data and populate performance tables</td>
-          <td>Daily 1:00 AM IST (Cron: 30 19 * * *)</td>
-          <td><span class="badge badge-success">Active</span></td>
-        </tr>
-        <tr>
-          <td><strong>Competitor Gap Scan</strong></td>
-          <td>Scan SERPs for defined competitors to find missing pages</td>
-          <td>Tuesday 3:00 AM IST (Cron: 30 21 * * 1)</td>
-          <td><span class="badge badge-success">Active</span></td>
-        </tr>
-      </tbody>
-    </table>
+<!-- Edit Job Modal -->
+<div id="editJobModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('editJobModal').style.display='none'">&times;</span>
+    <h2 class="mb-4">Edit Scheduled Job</h2>
+    <form method="POST" action="" id="editJobForm">
+      <div class="form-group">
+        <label>Job Name</label>
+        <input type="text" name="name" id="edit_name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" id="edit_description" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Cron Expression</label>
+        <input type="text" name="cron_expression" id="edit_cron" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Job Type Identifier</label>
+        <input type="text" name="job_type" id="edit_job_type" class="form-control" required readonly title="Cannot change core job type after creation">
+      </div>
+      <div class="text-right mt-4">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('editJobModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Job</button>
+      </div>
+    </form>
   </div>
 </div>
+
+<script>
+function openEditModal(job) {
+  document.getElementById('edit_name').value = job.name;
+  document.getElementById('edit_description').value = job.description;
+  document.getElementById('edit_cron').value = job.cron_expression;
+  document.getElementById('edit_job_type').value = job.job_type;
+  document.getElementById('editJobForm').action = '/admin/seo-engine/jobs/' + job.id + '/edit';
+  document.getElementById('editJobModal').style.display = 'block';
+}
+
+window.onclick = function(event) {
+  if (event.target == document.getElementById('addJobModal')) {
+    document.getElementById('addJobModal').style.display = "none";
+  }
+  if (event.target == document.getElementById('editJobModal')) {
+    document.getElementById('editJobModal').style.display = "none";
+  }
+}
+</script>
 
 <%- include('layout-bottom') %>

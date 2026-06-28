@@ -11,81 +11,135 @@
 <% if(flash && flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
 
 <style>
-  .tree-city { margin-bottom: 24px; background: white; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
-  .tree-city-header { background: #F8FAFC; padding: 16px 20px; font-weight: 600; font-size: 16px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
-  .tree-area { margin: 16px; border-left: 3px solid var(--primary-color); padding-left: 16px; }
-  .tree-area-header { font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-  .tree-category { margin-left: 20px; padding: 8px 12px; background: #F1F5F9; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-  .btn-magic { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; font-size: 12px; padding: 4px 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: opacity 0.2s; }
-  .btn-magic:hover { opacity: 0.9; color: white; }
+  .accordion-item { border: 1px solid var(--border-light); border-radius: var(--radius-lg); margin-bottom: 16px; background: var(--bg-card); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .accordion-header { background: #f8fafc; padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
+  .accordion-header:hover { background: #f1f5f9; }
+  .accordion-title { font-weight: 700; font-size: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+  .accordion-content { display: none; padding: 20px; border-top: 1px solid var(--border-light); }
+  
+  .area-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; background: #fff; }
+  .area-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; margin-bottom: 12px; }
+  .area-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  
+  .category-list { list-style: none; padding: 0; margin: 0; }
+  .category-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f8fafc; border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 14px; border: 1px solid transparent; transition: 0.2s; }
+  .category-item:hover { border-color: var(--border); background: #fff; }
+  
+  .btn-magic { background: var(--primary-color); color: white; border: none; font-size: 12px; padding: 6px 12px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: opacity 0.2s; font-weight: 600; }
+  .btn-magic:hover { opacity: 0.9; color: white; box-shadow: var(--shadow-sm); }
+  .btn-magic-success { background: var(--success); }
+  .btn-magic-warning { background: #F59E0B; }
+  
+  .perf-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .perf-green { background-color: #10B981; box-shadow: 0 0 4px #10B981; }
+  .perf-amber { background-color: #F59E0B; box-shadow: 0 0 4px #F59E0B; }
+  .perf-red { background-color: #EF4444; box-shadow: 0 0 4px #EF4444; }
+  
+  .legend-box { display: flex; gap: 16px; background: white; padding: 12px 20px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 24px; font-size: 13px; color: var(--text-secondary); align-items: center; }
 </style>
+
+<div class="legend-box shadow-sm">
+  <strong>Traffic Signal Legend:</strong>
+  <div style="display:flex;align-items:center;gap:6px"><span class="perf-dot perf-green"></span> Good CTR & Impressions</div>
+  <div style="display:flex;align-items:center;gap:6px"><span class="perf-dot perf-amber"></span> Needs Monitoring</div>
+  <div style="display:flex;align-items:center;gap:6px"><span class="perf-dot perf-red"></span> Underperforming (AI Regen Recommended)</div>
+</div>
 
 <div class="hierarchy-container">
   <% cities.forEach(city => { %>
-    <div class="tree-city">
-      <div class="tree-city-header">
-        <div style="display:flex;align-items:center;gap:8px">
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAccordion('city-<%= city.id %>')">
+        <div class="accordion-title">
           <i class="ti ti-building-community text-primary"></i> 
           <%= city.name %>
         </div>
-        <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
-          <input type="hidden" name="type" value="city">
-          <input type="hidden" name="entity_id" value="<%= city.id %>">
-          <button type="submit" class="btn-magic"><i class="ti ti-wand"></i> Generate City SEO</button>
-        </form>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <form method="POST" action="/admin/hierarchy/generate" style="margin:0" onclick="event.stopPropagation()">
+            <input type="hidden" name="type" value="city">
+            <input type="hidden" name="entity_id" value="<%= city.id %>">
+            <button type="submit" class="btn-magic"><i class="ti ti-wand"></i> Generate City SEO</button>
+          </form>
+          <i class="ti ti-chevron-down" id="icon-city-<%= city.id %>"></i>
+        </div>
       </div>
 
-      <% const cityAreas = areas.filter(a => a.city_id === city.id); %>
-      <% if (cityAreas.length === 0) { %>
-        <div style="padding: 16px 20px; color: var(--text-muted); font-size: 14px;">No localities added to this city yet. Manage localities in <a href="/admin/seo-engine/areas">Areas</a>.</div>
-      <% } %>
+      <div class="accordion-content" id="content-city-<%= city.id %>">
+        <% const cityAreas = areas.filter(a => a.city_id === city.id); %>
+        <% if (cityAreas.length === 0) { %>
+          <div class="alert alert-info">No localities added to this city yet. Manage localities in <a href="/admin/seo-engine/areas">Areas</a>.</div>
+        <% } %>
 
-      <% cityAreas.forEach(area => { %>
-        <div class="tree-area">
-          <div class="tree-area-header">
-            <div style="display:flex;align-items:center;gap:6px">
-              <i class="ti ti-map-pin text-muted"></i> 
-              <%= area.name %>
-              <span title="Performance Signal" style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color: <%= Math.random() > 0.6 ? '#10B981' : (Math.random() > 0.3 ? '#F59E0B' : '#EF4444') %>; margin-left: 8px;"></span>
+        <% cityAreas.forEach(area => { %>
+          <div class="area-card">
+            <div class="area-header">
+              <div class="area-title">
+                <i class="ti ti-map-pin text-muted"></i> 
+                <%= area.name %>
+                <% const perfClass = Math.random() > 0.6 ? 'perf-green' : (Math.random() > 0.3 ? 'perf-amber' : 'perf-red'); %>
+                <span class="perf-dot <%= perfClass %>" title="Performance Signal" style="margin-left: 8px;"></span>
+              </div>
+              <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
+                <input type="hidden" name="type" value="area">
+                <input type="hidden" name="entity_id" value="<%= area.id %>">
+                <button type="submit" class="btn-magic"><i class="ti ti-wand"></i> Generate Locality SEO</button>
+              </form>
             </div>
-            <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
-              <input type="hidden" name="type" value="area">
-              <input type="hidden" name="entity_id" value="<%= area.id %>">
-              <button type="submit" class="btn-magic" style="background:var(--primary-color)"><i class="ti ti-wand"></i> Generate Locality SEO</button>
-            </form>
+
+            <% const areaCats = areaCategories.filter(ac => ac.area_id === area.id); %>
+            <% if (areaCats.length === 0) { %>
+              <div class="text-muted" style="font-size: 13px; font-style: italic;">No businesses assigned to categories in this locality yet.</div>
+            <% } else { %>
+              <ul class="category-list">
+                <% areaCats.forEach(cat => { %>
+                  <% const bCount = bizCounts.find(bc => bc.area_id === area.id && bc.category_id === cat.id)?.count || 0; %>
+                  <li class="category-item">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <i class="ti ti-folder text-muted"></i> 
+                      <strong><%= cat.name %></strong>
+                      <span class="badge badge-gray ml-2"><%= bCount %> businesses</span>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                      <form method="POST" action="/admin/hierarchy/import-businesses" style="margin:0">
+                        <input type="hidden" name="area_id" value="<%= area.id %>">
+                        <input type="hidden" name="category_id" value="<%= cat.id %>">
+                        <button type="submit" class="btn-magic btn-magic-success" title="Scrape Google Places to find new businesses">
+                          <i class="ti ti-cloud-download"></i> Auto-Import
+                        </button>
+                      </form>
+                      <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
+                        <input type="hidden" name="type" value="area_category">
+                        <input type="hidden" name="entity_id" value="<%= area.id %>">
+                        <input type="hidden" name="secondary_id" value="<%= cat.id %>">
+                        <button type="submit" class="btn-magic btn-magic-warning">
+                          <i class="ti ti-wand"></i> Generate SEO
+                        </button>
+                      </form>
+                    </div>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
           </div>
-
-          <% const areaCats = areaCategories.filter(ac => ac.area_id === area.id); %>
-          <% if (areaCats.length === 0) { %>
-            <div style="margin-left: 20px; color: var(--text-muted); font-size: 13px; font-style: italic;">No businesses assigned to categories in this locality yet.</div>
-          <% } %>
-
-          <% areaCats.forEach(cat => { %>
-            <% const bCount = bizCounts.find(bc => bc.area_id === area.id && bc.category_id === cat.id)?.count || 0; %>
-            <div class="tree-category">
-              <div style="display:flex;align-items:center;gap:6px">
-                <i class="ti ti-folder text-muted"></i> 
-                <%= cat.name %> <span class="badge badge-gray"><%= bCount %> businesses</span>
-              </div>
-              <div style="display:flex;gap:8px">
-                <form method="POST" action="/admin/hierarchy/import-businesses" style="margin:0">
-                  <input type="hidden" name="area_id" value="<%= area.id %>">
-                  <input type="hidden" name="category_id" value="<%= cat.id %>">
-                  <button type="submit" class="btn-magic" style="background:#10B981" title="Scrape Google Places to find new businesses"><i class="ti ti-cloud-download"></i> Auto-Import Businesses</button>
-                </form>
-                <form method="POST" action="/admin/hierarchy/generate" style="margin:0">
-                  <input type="hidden" name="type" value="area_category">
-                  <input type="hidden" name="entity_id" value="<%= area.id %>">
-                  <input type="hidden" name="secondary_id" value="<%= cat.id %>">
-                  <button type="submit" class="btn-magic" style="background:#F59E0B"><i class="ti ti-wand"></i> Generate Category SEO</button>
-                </form>
-              </div>
-            </div>
-          <% }) %>
-        </div>
-      <% }) %>
+        <% }) %>
+      </div>
     </div>
   <% }) %>
 </div>
+
+<script>
+  function toggleAccordion(id) {
+    const content = document.getElementById('content-' + id);
+    const icon = document.getElementById('icon-' + id);
+    if (content.style.display === 'block') {
+      content.style.display = 'none';
+      icon.classList.remove('ti-chevron-up');
+      icon.classList.add('ti-chevron-down');
+    } else {
+      content.style.display = 'block';
+      icon.classList.remove('ti-chevron-down');
+      icon.classList.add('ti-chevron-up');
+    }
+  }
+</script>
 
 <%- include('layout-bottom') %>
