@@ -910,6 +910,7 @@ router.post('/blog', requireAuth, (req, res) => {
       req.body.content = decodeURIComponent(escape(Buffer.from(req.body.content_encoded, 'base64').toString('binary')));
     }
     blogService.createPost(req.body, req.session.adminId);
+    if (publicCache) publicCache.flushAll();
     req.flash('success', 'Post created.');
     res.redirect('/admin/blog');
   } catch (e) {
@@ -932,6 +933,7 @@ router.post('/blog/:id', requireAuth, (req, res) => {
       req.body.content = decodeURIComponent(escape(Buffer.from(req.body.content_encoded, 'base64').toString('binary')));
     }
     blogService.updatePost(req.params.id, req.body);
+    if (publicCache) publicCache.flushAll();
     req.flash('success', 'Post updated.');
   } catch (e) {
     req.flash('error', e.message);
@@ -941,16 +943,19 @@ router.post('/blog/:id', requireAuth, (req, res) => {
 
 router.post('/blog/:id/publish', requireAuth, (req, res) => {
   blogService.publishPost(req.params.id);
+  if (publicCache) publicCache.flushAll();
   res.redirect('/admin/blog');
 });
 
 router.post('/blog/:id/unpublish', requireAuth, (req, res) => {
   blogService.unpublishPost(req.params.id);
+  if (publicCache) publicCache.flushAll();
   res.redirect('/admin/blog');
 });
 
 router.post('/blog/:id/delete', requireAuth, (req, res) => {
   blogService.deletePost(req.params.id);
+  if (publicCache) publicCache.flushAll();
   req.flash('success', 'Post deleted.');
   res.redirect('/admin/blog');
 });
@@ -975,6 +980,7 @@ router.post('/news', requireAuth, (req, res) => {
       req.body.content = decodeURIComponent(escape(Buffer.from(req.body.content_encoded, 'base64').toString('binary')));
     }
     newsService.createNews(req.body);
+    if (publicCache) publicCache.flushAll();
     req.flash('success', 'News article created.');
     res.redirect('/admin/news');
   } catch (e) {
@@ -995,6 +1001,7 @@ router.post('/news/:id', requireAuth, (req, res) => {
       req.body.content = decodeURIComponent(escape(Buffer.from(req.body.content_encoded, 'base64').toString('binary')));
     }
     newsService.updateNews(req.params.id, req.body);
+    if (publicCache) publicCache.flushAll();
     req.flash('success', 'News article updated.');
   } catch (e) {
     req.flash('error', e.message);
@@ -1004,11 +1011,13 @@ router.post('/news/:id', requireAuth, (req, res) => {
 
 router.post('/news/:id/toggle', requireAuth, (req, res) => {
   newsService.toggleNews(req.params.id);
+  if (publicCache) publicCache.flushAll();
   res.redirect('/admin/news');
 });
 
 router.post('/news/:id/delete', requireAuth, (req, res) => {
   newsService.deleteNews(req.params.id);
+  if (publicCache) publicCache.flushAll();
   req.flash('success', 'News article deleted.');
   res.redirect('/admin/news');
 });

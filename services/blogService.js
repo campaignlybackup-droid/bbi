@@ -133,7 +133,7 @@ function getPosts(options = {}) {
     params.push(category);
   }
 
-  sql += ` ORDER BY bp.published_at DESC, bp.created_at DESC LIMIT ? OFFSET ?`;
+  sql += ` ORDER BY COALESCE(bp.published_at, bp.created_at) DESC LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const posts = db.prepare(sql).all(...params);
