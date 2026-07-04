@@ -15,15 +15,32 @@
     
     <h1 style="font-size:42px;color:var(--text-primary);margin:0 0 var(--space-4) 0;line-height:1.2"><%= post.title %></h1>
     
-    <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-4);color:var(--text-secondary);font-size:var(--font-size-sm)">
+    <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-4);color:var(--text-secondary);font-size:var(--font-size-sm);flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:var(--space-2)">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent-color);display:flex;align-items:center;justify-content:center;font-weight:bold">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold">
           <%= (post.author_name || 'BBI').charAt(0) %>
         </div>
-        <span>By <strong><%= post.author_name || 'BBI Team' %></strong></span>
+        <span>By <strong><%= post.author_name || 'BBI Editorial Team' %></strong></span>
       </div>
-      <span>&bull;</span>
-      <span><%= new Date(post.published_at).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) %></span>
+      <span style="color:var(--border)">&bull;</span>
+      <span>Published <%= new Date(post.published_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) %></span>
+      <% if (post.updated_at && new Date(post.updated_at).getTime() - new Date(post.published_at).getTime() > 86400000) { %>
+        <span style="color:var(--border)">&bull;</span>
+        <span>Updated <%= new Date(post.updated_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) %></span>
+      <% } %>
+      <span style="color:var(--border)">&bull;</span>
+      <% 
+        const wordCount = post.content ? post.content.replace(/<[^>]*>?/gm, '').split(/\s+/).length : 0;
+        const readTime = Math.max(1, Math.ceil(wordCount / 225));
+      %>
+      <span><i class="ti ti-clock" style="vertical-align:middle;margin-right:4px"></i><%= readTime %> min read</span>
+    </div>
+    
+    <!-- Share Buttons -->
+    <div style="display:flex;justify-content:center;gap:var(--space-2);margin-top:var(--space-4)">
+      <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent('https://bharatbusinessindex.com/blog/' + post.slug) %>&text=<%= encodeURIComponent(post.title) %>" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#f5f6f8;color:var(--text-secondary);transition:all 0.2s" aria-label="Share on Twitter" onmouseover="this.style.background='#1da1f2';this.style.color='#fff'" onmouseout="this.style.background='#f5f6f8';this.style.color='var(--text-secondary)'"><i class="ti ti-brand-twitter"></i></a>
+      <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= encodeURIComponent('https://bharatbusinessindex.com/blog/' + post.slug) %>" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#f5f6f8;color:var(--text-secondary);transition:all 0.2s" aria-label="Share on LinkedIn" onmouseover="this.style.background='#0077b5';this.style.color='#fff'" onmouseout="this.style.background='#f5f6f8';this.style.color='var(--text-secondary)'"><i class="ti ti-brand-linkedin"></i></a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent('https://bharatbusinessindex.com/blog/' + post.slug) %>" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#f5f6f8;color:var(--text-secondary);transition:all 0.2s" aria-label="Share on Facebook" onmouseover="this.style.background='#1877f2';this.style.color='#fff'" onmouseout="this.style.background='#f5f6f8';this.style.color='var(--text-secondary)'"><i class="ti ti-brand-facebook"></i></a>
     </div>
   </header>
 

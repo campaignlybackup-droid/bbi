@@ -130,46 +130,64 @@
   <% if(typeof metaDescription !== 'undefined') { %><meta name="twitter:description" content="<%= metaDescription %>"><% } %>
   <% if(typeof ogImage !== 'undefined' && ogImage) { %><meta name="twitter:image" content="<%= ogImage %>"><% } %>
 
-  <!-- Google Analytics — deferred until after page is interactive -->
+  <!-- Cookie Consent + Google Analytics + AdSense (consent-gated) -->
   <script>
-    // Load gtag after the page is fully interactive to avoid blocking first paint
-    function loadGtag() {
-      var s = document.createElement('script');
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-YP8QCHTR1B';
-      s.async = true;
-      document.head.appendChild(s);
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      window.gtag = gtag;
-      gtag('js', new Date());
-      gtag('config', 'G-YP8QCHTR1B', { send_page_view: true });
-    }
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(loadGtag);
-    } else {
-      setTimeout(loadGtag, 2000);
-    }
-  </script>
+    // Cookie consent management — loads GA/AdSense only after user accepts
+    (function() {
+      var CONSENT_KEY = 'bbi_cookie_consent';
 
-  <!-- Google AdSense — deferred to not block rendering -->
-  <script>
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(function() {
+      function loadGtag() {
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-YP8QCHTR1B';
+        s.async = true;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', 'G-YP8QCHTR1B', { send_page_view: true });
+      }
+
+      function loadAdSense() {
         var s = document.createElement('script');
         s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1420323757897502';
         s.async = true;
         s.crossOrigin = 'anonymous';
         document.head.appendChild(s);
-      });
-    } else {
-      setTimeout(function() {
-        var s = document.createElement('script');
-        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1420323757897502';
-        s.async = true;
-        s.crossOrigin = 'anonymous';
-        document.head.appendChild(s);
-      }, 3000);
-    }
+      }
+
+      function loadNonEssential() {
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(function() { loadGtag(); loadAdSense(); });
+        } else {
+          setTimeout(function() { loadGtag(); loadAdSense(); }, 2000);
+        }
+      }
+
+      // Check existing consent
+      var consent = localStorage.getItem(CONSENT_KEY);
+      if (consent === 'accepted') {
+        loadNonEssential();
+      }
+
+      // Expose functions globally for the banner
+      window.__bbiConsent = {
+        accept: function() {
+          localStorage.setItem(CONSENT_KEY, 'accepted');
+          loadNonEssential();
+          var banner = document.getElementById('cookie-consent-banner');
+          if (banner) banner.style.display = 'none';
+        },
+        reject: function() {
+          localStorage.setItem(CONSENT_KEY, 'rejected');
+          var banner = document.getElementById('cookie-consent-banner');
+          if (banner) banner.style.display = 'none';
+        },
+        hasConsented: function() {
+          return localStorage.getItem(CONSENT_KEY);
+        }
+      };
+    })();
   </script>
 
   <% if (typeof schemaJson !== 'undefined' && schemaJson) { %>

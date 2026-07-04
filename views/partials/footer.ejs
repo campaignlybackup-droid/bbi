@@ -17,6 +17,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Company</div>
+        <a href="/about">About Us</a>
         <a href="/methodology">Methodology</a>
         <a href="/get-listed">Get Listed</a>
       </div>
@@ -45,6 +46,27 @@
 </footer>
 
 <%- include('mobile-nav') %>
+
+<!-- Cookie Consent Banner -->
+<div id="cookie-consent-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0D2E5E;color:#fff;padding:16px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.15);font-size:14px;line-height:1.5">
+  <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="flex:1;min-width:280px">
+      <strong style="display:block;margin-bottom:4px">🍪 We value your privacy</strong>
+      We use cookies for essential site functionality, analytics (Google Analytics), and to display relevant advertisements (Google AdSense). Advertising never affects our business rankings.
+      <a href="/privacy-policy#cookies" style="color:#E8A020;margin-left:4px;text-decoration:underline">Learn more</a>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button onclick="window.__bbiConsent.reject()" style="background:transparent;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600">Reject</button>
+      <button onclick="window.__bbiConsent.accept()" style="background:#E8A020;border:none;color:#0D2E5E;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:700">Accept All</button>
+    </div>
+  </div>
+</div>
+<script>
+  // Show banner only if no consent has been recorded
+  if (!window.__bbiConsent.hasConsented()) {
+    document.getElementById('cookie-consent-banner').style.display = 'block';
+  }
+</script>
 
 </body>
 </html>

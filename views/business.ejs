@@ -75,6 +75,16 @@
       </div>
       <% } %>
 
+      <!-- Editorial Insights & Performance (Rich text for content depth) -->
+      <div class="profile-card">
+        <div class="profile-card-title">Editorial Insights & Performance</div>
+        <div style="font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7">
+          <p style="margin-bottom:12px">Based on our latest data collection, <strong><%= business.name %></strong> has established a notable presence within the <%= business.cat_name %> category in <%= business.city_name %>. The business currently maintains a Google rating of <strong><%= business.google_rating || 'N/A' %></strong> across <strong><%= business.google_review_count || 0 %></strong> reviews, which significantly influences its overall Bharat Business Index score.</p>
+          <p style="margin-bottom:12px">When evaluating <%= business.name %>, our algorithm analyzes their digital footprint, customer feedback consistency, and business completeness. <% if (business.verified) { %>The fact that this business is <strong>BBI Verified</strong> demonstrates a commitment to transparency and accurate information representation.<% } else { %>While this profile is not yet BBI Verified, the business has accumulated sufficient organic data to qualify for independent ranking consideration.<% } %></p>
+          <p style="margin-bottom:0">Consumers considering <%= business.name %> should note that our rankings are strictly independent and updated on a monthly basis. The score breakdown provided above reflects the most recent data snapshot, allowing for objective comparison against other local <%= business.cat_name.toLowerCase() %> providers.</p>
+        </div>
+      </div>
+
       <!-- FAQ -->
       <% if(typeof faqs !== 'undefined' && faqs.length) { %>
       <div class="profile-card">

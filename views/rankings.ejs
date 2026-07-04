@@ -87,29 +87,48 @@
   </div>
   <% } %>
 
-  <!-- Editorial Content & FAQs (Auto-generated) -->
-  <% if(typeof seoContent !== 'undefined' && seoContent) { %>
-    <% if(seoContent.editorial_content) { %>
-    <div style="margin-top:var(--space-8); background: #f9fbfd; padding: var(--space-6); border-radius: 16px; border: 1px solid var(--border-light);">
+  <!-- Editorial Content & FAQs -->
+  <div style="margin-top:var(--space-8); background: #f9fbfd; padding: var(--space-6); border-radius: 16px; border: 1px solid var(--border-light);">
+    <% if(typeof seoContent !== 'undefined' && seoContent && seoContent.editorial_content) { %>
       <div class="article-content" style="line-height: 1.7; color: var(--text-secondary);">
         <%- seoContent.editorial_content %>
       </div>
-    </div>
-    <% } %>
-
-    <% if(seoContent.faqs && seoContent.faqs.length > 0) { %>
-    <div style="margin-top:var(--space-8);">
-      <h2 style="font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: var(--space-4);">Frequently Asked Questions</h2>
-      <div class="faq-accordion">
-        <% seoContent.faqs.forEach(faq => { %>
-          <div class="faq-item" style="border-bottom: 1px solid var(--border-light); padding: var(--space-3) 0;">
-            <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0;"><%= faq.question %></h3>
-            <p style="font-size: 15px; color: var(--text-secondary); margin: 0; line-height: 1.5;"><%= faq.answer %></p>
-          </div>
-        <% }) %>
+    <% } else if (rankings && rankings.length > 0) { %>
+      <% 
+        const avgScore = Math.round(rankings.reduce((sum, r) => sum + r.final_score, 0) / rankings.length);
+        const totalReviews = rankings.reduce((sum, r) => sum + (r.google_review_count || 0), 0);
+        const avgRating = rankings.reduce((sum, r) => sum + (r.google_rating || 0), 0) / rankings.filter(r => r.google_rating).length;
+      %>
+      <div class="article-content" style="line-height: 1.7; color: var(--text-secondary);">
+        <h3 style="margin-top: 0; color: var(--text-primary); font-size: 20px;">About the <%= city.name %> <%= cat.name %> Rankings</h3>
+        <p style="margin-bottom: 12px;">Bharat Business Index has evaluated <strong><%= rankings.length %></strong> top <%= cat.name.toLowerCase() %> in <%= city.name %> for our latest monthly update. The businesses featured in this ranking maintain an average BBI score of <strong><%= avgScore %>/100</strong>.</p>
+        <% if (totalReviews > 0) { %>
+        <p style="margin-bottom: 12px;">Our scoring methodology analyzes real customer experiences. For this category, we processed over <strong><%= totalReviews.toLocaleString() %></strong> verified customer reviews, with ranked businesses maintaining an average Google rating of <strong><%= isNaN(avgRating) ? '4.0' : avgRating.toFixed(1) %> stars</strong>.</p>
+        <% } %>
+        <h4 style="margin-top: 16px; margin-bottom: 8px; font-size: 16px; color: var(--text-primary);">How we rank businesses</h4>
+        <p style="margin-bottom: 0;">Unlike directories that allow paid placements, BBI rankings are strictly independent and data-driven. Every business is scored across six weighted metrics: Customer Reviews (35%), Review Volume (25%), Website & Online Presence (15%), Verification Status (10%), Profile Completeness (10%), and Editorial Assessment (15%). No business can purchase a higher rank.</p>
       </div>
-    </div>
+    <% } else { %>
+      <div class="article-content" style="line-height: 1.7; color: var(--text-secondary);">
+        <h3 style="margin-top: 0; color: var(--text-primary); font-size: 20px;">About the <%= city.name %> <%= cat.name %> Rankings</h3>
+        <p style="margin-bottom: 12px;">Bharat Business Index evaluates <%= cat.name.toLowerCase() %> across <%= city.name %> using a strict, independent scoring methodology. We analyze customer reviews, digital presence, and profile completeness to generate our monthly rankings.</p>
+        <p style="margin-bottom: 0;">Unlike directories that allow paid placements, BBI rankings are strictly independent and data-driven. Every business is scored across six weighted metrics, ensuring that rankings cannot be purchased.</p>
+      </div>
     <% } %>
+  </div>
+
+  <% if(typeof seoContent !== 'undefined' && seoContent && seoContent.faqs && seoContent.faqs.length > 0) { %>
+  <div style="margin-top:var(--space-8);">
+    <h2 style="font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: var(--space-4);">Frequently Asked Questions</h2>
+    <div class="faq-accordion">
+      <% seoContent.faqs.forEach(faq => { %>
+        <div class="faq-item" style="border-bottom: 1px solid var(--border-light); padding: var(--space-3) 0;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0;"><%= faq.question %></h3>
+          <p style="font-size: 15px; color: var(--text-secondary); margin: 0; line-height: 1.5;"><%= faq.answer %></p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
   <% } %>
 
   <!-- Related Rankings -->

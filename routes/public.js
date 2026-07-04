@@ -478,6 +478,17 @@ router.get('/category/:catSlug', cacheMiddleware, (req, res) => {
 });
 
 // ============================================
+// ABOUT US
+// ============================================
+router.get('/about', (req, res) => {
+  res.render('about', {
+    title: 'About Bharat Business Index',
+    metaDescription: "India's independent, data-driven business ranking platform. We evaluate businesses on merit, not marketing.",
+    canonicalUrl: `${BASE_URL}/about`,
+  });
+});
+
+// ============================================
 // METHODOLOGY
 // ============================================
 router.get('/methodology', (req, res) => {
