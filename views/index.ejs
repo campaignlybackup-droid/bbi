@@ -57,7 +57,27 @@
 </div>
 <% } %>
 
-<%# === 3B. CUSTOM RANKINGS === %>
+<%# === 3B. FEATURED SEO PAGES === %>
+<% if(typeof featuredSeoPages !== 'undefined' && featuredSeoPages.length) { %>
+<div class="section section-lazy">
+  <div class="section-label">Targeted Guides</div>
+  <h2 class="section-title" style="margin-bottom:var(--space-5)">Special Rankings & Guides</h2>
+  <div class="rank-grid">
+    <% featuredSeoPages.forEach(p => { %>
+    <a href="/<%= p.slug %>" class="ranking-page-card" style="border-left:4px solid var(--gold)">
+      <div class="rpc-icon"><i class="ti ti-rocket" style="color:var(--navy)"></i></div>
+      <div class="rpc-info">
+        <div class="rpc-title"><%= p.h1 || p.title %></div>
+        <div class="rpc-meta">Expert Guide</div>
+      </div>
+      <i class="ti ti-chevron-right rpc-arrow"></i>
+    </a>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<%# === 3C. CUSTOM RANKINGS === %>
 <% if(typeof customRankings !== 'undefined' && customRankings.length) { %>
 <div class="section section-lazy">
   <div class="section-label">Custom Rankings</div>

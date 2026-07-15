@@ -1,0 +1,258 @@
+<%- include('partials/header') %>
+
+<%# ======= STRUCTURED DATA ======= %>
+<% if (typeof breadcrumbSchema !== 'undefined') { %>
+<script type="application/ld+json"><%- JSON.stringify(breadcrumbSchema) %></script>
+<% } %>
+<% if (typeof faqSchema !== 'undefined' && faqSchema) { %>
+<script type="application/ld+json"><%- JSON.stringify(faqSchema) %></script>
+<% } %>
+<% if (typeof itemListSchema !== 'undefined' && itemListSchema) { %>
+<script type="application/ld+json"><%- JSON.stringify(itemListSchema) %></script>
+<% } %>
+<% if (typeof webPageSchema !== 'undefined' && webPageSchema) { %>
+<script type="application/ld+json"><%- JSON.stringify(webPageSchema) %></script>
+<% } %>
+
+<%# ======= HERO SECTION ======= %>
+<div class="page-header" style="padding:var(--space-8) var(--space-4);background:linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 50%, #0a1628 100%)">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="breadcrumb" style="margin-bottom:var(--space-3)">
+      <a href="/" style="color:var(--gold)">Home</a> <span style="color:rgba(255,255,255,.4);margin:0 6px">/</span>
+      <% if(typeof page.city_name !== 'undefined' && page.city_name) { %>
+        <a href="/city/<%= page.city_slug %>" style="color:rgba(255,255,255,.7)"><%= page.city_name %></a>
+        <span style="color:rgba(255,255,255,.4);margin:0 6px">/</span>
+      <% } %>
+      <span style="color:rgba(255,255,255,.55)"><%= page.h1 %></span>
+    </div>
+    <h1 style="font-size:clamp(1.5rem, 4vw, 2.25rem);font-weight:800;color:#fff;margin-bottom:var(--space-2);line-height:1.2;letter-spacing:-0.02em"><%= page.h1 %></h1>
+    <% if(page.hero_subtitle) { %>
+    <p style="font-size:var(--font-size-base);color:rgba(255,255,255,.7);max-width:650px;line-height:1.5"><%= page.hero_subtitle %></p>
+    <% } %>
+    <div style="margin-top:var(--space-4);display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:4px">
+        <i class="ti ti-calendar" style="font-size:14px"></i> Updated: <%= new Date(page.updated_at || page.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) %>
+      </span>
+      <% if(typeof rankings !== 'undefined' && rankings.length > 0) { %>
+      <span style="font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:4px">
+        <i class="ti ti-building-store" style="font-size:14px"></i> <%= rankings.length %> businesses ranked
+      </span>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%# ======= MAIN CONTENT ======= %>
+<div style="max-width:1100px;margin:0 auto;padding:var(--space-6) var(--space-4);display:grid;grid-template-columns:1fr;gap:var(--space-6)">
+
+<div style="display:grid;grid-template-columns:1fr 300px;gap:var(--space-8);align-items:start">
+
+  <%# ===== LEFT COLUMN ===== %>
+  <div>
+
+    <%# -- Quick Answer Box (AEO) -- %>
+    <% if(page.content_intro) { %>
+    <div style="background:linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);border:1px solid var(--info-border);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-6);position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg, var(--navy) 0%, var(--gold) 100%)"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--space-3)">
+        <i class="ti ti-bulb" style="color:var(--gold);font-size:20px"></i>
+        <span style="font-size:var(--font-size-xs);font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px">Quick Answer</span>
+      </div>
+      <div style="font-size:var(--font-size-base);color:var(--text-primary);line-height:1.7">
+        <%- page.content_intro %>
+      </div>
+    </div>
+    <% } %>
+
+    <%# -- Rankings Table (if linked to city+category) -- %>
+    <% if(typeof rankings !== 'undefined' && rankings.length > 0) { %>
+    <div style="margin-bottom:var(--space-8)">
+      <div class="section-label">Rankings</div>
+      <h2 class="section-title" style="margin-bottom:var(--space-4)">
+        <% if(page.city_name && page.category_name) { %>
+          Top <%= page.category_name %> in <%= page.city_name %>
+        <% } else { %>
+          Top Ranked Businesses
+        <% } %>
+      </h2>
+      
+      <div class="rank-grid" style="grid-template-columns:1fr">
+        <% rankings.forEach((b, i) => { %>
+        <a href="/business/<%= b.slug %>" class="rcard" style="display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:white;transition:all 0.2s">
+          <div class="rank-num" style="min-width:40px;text-align:center;font-size:18px;font-weight:800;color:var(--navy)">#<%= b.rank_position || (i + 1) %></div>
+          <div style="flex:1">
+            <div class="biz-name" style="font-weight:600;color:var(--text-primary);margin-bottom:4px">
+              <%= b.name %>
+              <% if(b.verified) { %><span class="tag-verified" style="margin-left:6px">Verified</span><% } %>
+              <% if(b.sponsored) { %><span class="tag-sponsored" style="margin-left:4px">Sponsored</span><% } %>
+            </div>
+            <% if(b.address) { %>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px"><i class="ti ti-map-pin" style="font-size:12px"></i> <%= b.address %></div>
+            <% } %>
+            <% if(b.google_rating) { %>
+            <div style="font-size:12px;color:var(--text-secondary)">
+              <i class="ti ti-star-filled" style="color:var(--gold);font-size:14px"></i> <%= b.google_rating %> · <%= b.google_review_count %> reviews
+              <% if(b.final_score) { %> · <strong>BBI Score: <%= parseFloat(b.final_score).toFixed(1) %></strong><% } %>
+            </div>
+            <% } %>
+          </div>
+          <i class="ti ti-chevron-right" style="color:var(--text-muted);font-size:18px"></i>
+        </a>
+        <% }) %>
+      </div>
+
+      <% if(page.city_slug && page.category_slug) { %>
+      <div style="text-align:center;margin-top:var(--space-4)">
+        <a href="/rankings/<%= page.city_slug %>/<%= page.category_slug %>" class="btn btn-outline" style="display:inline-flex;align-items:center;gap:6px">
+          <i class="ti ti-trophy"></i> View Full Rankings Page
+        </a>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <%# -- Main Body Content -- %>
+    <% if(page.content_body) { %>
+    <div class="editorial-content" style="margin-bottom:var(--space-8)">
+      <div style="font-size:var(--font-size-base);color:var(--text-secondary);line-height:1.8">
+        <%- page.content_body %>
+      </div>
+    </div>
+    <% } %>
+
+    <%# -- FAQ Accordion -- %>
+    <% if(typeof faqs !== 'undefined' && faqs.length > 0) { %>
+    <div style="margin-bottom:var(--space-8)">
+      <div class="section-label">Frequently Asked Questions</div>
+      <h2 class="section-title" style="margin-bottom:var(--space-4)">People Also Ask</h2>
+      
+      <div class="faq-accordion">
+        <% faqs.forEach((faq, idx) => { %>
+        <div class="faq-item" style="border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:8px;overflow:hidden;background:white">
+          <button type="button" class="faq-toggle" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:16px 20px;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font);font-size:var(--font-size-base);font-weight:600;color:var(--text-primary)">
+            <span><%= faq.question %></span>
+            <i class="ti ti-chevron-down" style="transition:transform 0.2s;color:var(--text-muted);flex-shrink:0;margin-left:12px"></i>
+          </button>
+          <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease">
+            <div style="padding:0 20px 16px;font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7">
+              <%- faq.answer %>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+
+    <%# -- Conclusion / CTA -- %>
+    <% if(page.content_conclusion) { %>
+    <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-6)">
+      <div style="font-size:var(--font-size-base);color:var(--text-secondary);line-height:1.7">
+        <%- page.content_conclusion %>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+
+  <%# ===== RIGHT SIDEBAR ===== %>
+  <aside style="position:sticky;top:72px">
+
+    <%# -- Related SEO Pages -- %>
+    <% if(typeof relatedPages !== 'undefined' && relatedPages.length > 0) { %>
+    <div style="background:white;border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-4)">
+      <h3 style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);margin-bottom:var(--space-3);display:flex;align-items:center;gap:6px">
+        <i class="ti ti-link" style="color:var(--navy)"></i> Related Pages
+      </h3>
+      <% relatedPages.forEach(rp => { %>
+      <a href="/<%= rp.slug %>" style="display:block;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:var(--font-size-sm);color:var(--text-secondary);transition:color 0.15s">
+        <i class="ti ti-chevron-right" style="font-size:12px;color:var(--gold);margin-right:4px"></i> <%= rp.title %>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <%# -- Manual Internal Links -- %>
+    <% if(typeof internalLinks !== 'undefined' && internalLinks.length > 0) { %>
+    <div style="background:white;border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-4)">
+      <h3 style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);margin-bottom:var(--space-3);display:flex;align-items:center;gap:6px">
+        <i class="ti ti-external-link" style="color:var(--navy)"></i> Explore More
+      </h3>
+      <% internalLinks.forEach(link => { %>
+      <a href="<%= link.url %>" style="display:block;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:var(--font-size-sm);color:var(--text-secondary);transition:color 0.15s">
+        <i class="ti ti-arrow-right" style="font-size:12px;color:var(--gold);margin-right:4px"></i> <%= link.text %>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <%# -- Related Rankings -- %>
+    <% if(typeof relatedRankings !== 'undefined' && relatedRankings.length > 0) { %>
+    <div style="background:white;border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-4)">
+      <h3 style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);margin-bottom:var(--space-3);display:flex;align-items:center;gap:6px">
+        <i class="ti ti-trophy" style="color:var(--gold)"></i> Related Rankings
+      </h3>
+      <% relatedRankings.forEach(rr => { %>
+      <a href="/rankings/<%= rr.city_slug %>/<%= rr.cat_slug %>" style="display:block;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:var(--font-size-sm);color:var(--text-secondary)">
+        <i class="ti ti-chevron-right" style="font-size:12px;color:var(--gold);margin-right:4px"></i> <%= rr.cat_name %> in <%= rr.city_name %>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <%# -- Get Listed CTA -- %>
+    <div style="background:linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);border-radius:var(--radius-lg);padding:var(--space-5);color:white;text-align:center">
+      <i class="ti ti-building-store" style="font-size:28px;color:var(--gold);margin-bottom:8px"></i>
+      <h3 style="font-size:var(--font-size-sm);font-weight:700;color:white;margin-bottom:8px">Own a business?</h3>
+      <p style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.4">Get your business ranked on Bharat Business Index. Free listing, independent rankings.</p>
+      <a href="/get-listed" style="display:inline-block;background:var(--gold);color:var(--navy);padding:8px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-decoration:none">Get Listed</a>
+    </div>
+
+  </aside>
+
+</div>
+
+</div>
+
+<%# ======= FAQ TOGGLE SCRIPT ======= %>
+<script>
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const icon = btn.querySelector('.ti');
+  const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
+  
+  if (isOpen) {
+    answer.style.maxHeight = '0px';
+    icon.style.transform = 'rotate(0deg)';
+  } else {
+    answer.style.maxHeight = answer.scrollHeight + 'px';
+    icon.style.transform = 'rotate(180deg)';
+  }
+}
+</script>
+
+<style>
+  /* Responsive: stack sidebar below content on mobile */
+  @media (max-width: 768px) {
+    div[style*="grid-template-columns:1fr 300px"] {
+      grid-template-columns: 1fr !important;
+    }
+    aside[style*="sticky"] {
+      position: static !important;
+    }
+  }
+  /* Editorial content styles */
+  .editorial-content h2 { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); margin: var(--space-6) 0 var(--space-3); }
+  .editorial-content h3 { font-size: var(--font-size-base); font-weight: 700; color: var(--text-primary); margin: var(--space-5) 0 var(--space-2); }
+  .editorial-content p { margin-bottom: var(--space-3); }
+  .editorial-content ul, .editorial-content ol { margin-bottom: var(--space-3); padding-left: var(--space-6); }
+  .editorial-content li { margin-bottom: var(--space-1); }
+  .editorial-content strong { color: var(--text-primary); }
+  .editorial-content a { color: var(--navy); text-decoration: underline; }
+  /* FAQ hover */
+  .faq-toggle:hover { background: var(--bg-hover) !important; }
+  /* Rank card hover */
+  .rcard:hover { border-color: var(--navy) !important; box-shadow: var(--shadow-md); transform: translateY(-1px); }
+</style>
+
+<%- include('partials/footer') %>

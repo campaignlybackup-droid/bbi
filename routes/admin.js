@@ -709,6 +709,103 @@ router.post('/admins/:id/delete', requireAuth, requireSuperAdmin, (req, res) => 
 router.use('/seo-engine', requireAuth, require('./adminProgrammaticSeo'));
 router.use('/hierarchy', requireAuth, require('./adminHierarchy'));
 
+// ============================================
+// SEO LANDING PAGES — Full CRUD
+// ============================================
+const seoLandingPageService = require('../services/seoLandingPageService');
+
+router.get('/seo-landing-pages', requireAuth, (req, res) => {
+  const pages = seoLandingPageService.getAllPages();
+  res.render('admin/seo-landing-pages-list', {
+    pages,
+    title: 'SEO Landing Pages',
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.get('/seo-landing-pages/new', requireAuth, (req, res) => {
+  const cities = db.prepare('SELECT id, name FROM cities WHERE active=1 ORDER BY name').all();
+  const categories = db.prepare('SELECT id, name FROM categories WHERE active=1 ORDER BY name').all();
+  res.render('admin/seo-landing-page-form', {
+    page: null,
+    cities,
+    categories,
+    title: 'Create SEO Landing Page',
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.post('/seo-landing-pages', requireAuth, (req, res) => {
+  try {
+    seoLandingPageService.createPage(req.body);
+    req.flash('success', 'SEO Landing Page created successfully!');
+  } catch (e) {
+    req.flash('error', 'Failed to create page: ' + e.message);
+  }
+  res.redirect('/admin/seo-landing-pages');
+});
+
+router.get('/seo-landing-pages/:id/edit', requireAuth, (req, res) => {
+  const page = seoLandingPageService.getPageById(req.params.id);
+  if (!page) return res.redirect('/admin/seo-landing-pages');
+  const cities = db.prepare('SELECT id, name FROM cities WHERE active=1 ORDER BY name').all();
+  const categories = db.prepare('SELECT id, name FROM categories WHERE active=1 ORDER BY name').all();
+  res.render('admin/seo-landing-page-form', {
+    page,
+    cities,
+    categories,
+    title: 'Edit: ' + page.h1,
+    admin: req.session,
+    flash: { success: req.flash('success'), error: req.flash('error') }
+  });
+});
+
+router.post('/seo-landing-pages/:id', requireAuth, (req, res) => {
+  try {
+    seoLandingPageService.updatePage(req.params.id, req.body);
+    req.flash('success', 'SEO Landing Page updated successfully!');
+  } catch (e) {
+    req.flash('error', 'Failed to update page: ' + e.message);
+  }
+  res.redirect('/admin/seo-landing-pages/' + req.params.id + '/edit');
+});
+
+router.post('/seo-landing-pages/:id/delete', requireAuth, (req, res) => {
+  try {
+    seoLandingPageService.deletePage(req.params.id);
+    req.flash('success', 'Page deleted.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-landing-pages');
+});
+
+router.post('/seo-landing-pages/:id/toggle', requireAuth, (req, res) => {
+  try {
+    seoLandingPageService.togglePage(req.params.id);
+    req.flash('success', 'Page status toggled.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-landing-pages');
+});
+
+router.post('/seo-landing-pages/:id/duplicate', requireAuth, (req, res) => {
+  try {
+    const newId = seoLandingPageService.duplicatePage(req.params.id);
+    if (newId) {
+      req.flash('success', 'Page duplicated! Edit the copy below.');
+      return res.redirect('/admin/seo-landing-pages/' + newId + '/edit');
+    }
+    req.flash('error', 'Source page not found.');
+  } catch (e) {
+    req.flash('error', e.message);
+  }
+  res.redirect('/admin/seo-landing-pages');
+});
+
 router.get('/pages', requireAuth, (req, res) => {
   const cities = db.prepare('SELECT id, name, slug FROM cities WHERE active=1').all();
   const categories = db.prepare('SELECT id, name, slug FROM categories WHERE active=1').all();

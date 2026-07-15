@@ -3,6 +3,45 @@
 </main>
 <footer>
   <div class="footer-inner">
+
+    <%# === LATEST NEWS SECTION === %>
+    <% if(typeof latestNews !== 'undefined' && latestNews.length > 0) { %>
+    <div style="padding:var(--space-6) 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="ti ti-news" style="color:var(--gold);font-size:18px"></i>
+          <span style="font-size:var(--font-size-sm);font-weight:700;color:white;text-transform:uppercase;letter-spacing:1px">Latest News & Updates</span>
+        </div>
+        <a href="/news" style="font-size:var(--font-size-xs);color:var(--gold);font-weight:600;display:flex;align-items:center;gap:4px">
+          View All <i class="ti ti-arrow-right" style="font-size:12px"></i>
+        </a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:12px">
+        <% latestNews.forEach(news => { %>
+        <a href="/news/<%= news.slug %>" style="display:block;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:8px;transition:all 0.2s">
+          <div style="font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);font-weight:600;margin-bottom:4px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"><%= news.title %></div>
+          <div style="font-size:var(--font-size-xs);color:rgba(255,255,255,0.4)">
+            <i class="ti ti-clock" style="font-size:11px;margin-right:2px"></i>
+            <% 
+              const newsDate = new Date(news.created_at);
+              const now = new Date();
+              const diffMs = now - newsDate;
+              const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+              let timeAgo = '';
+              if(diffDays === 0) timeAgo = 'Today';
+              else if(diffDays === 1) timeAgo = 'Yesterday';
+              else if(diffDays < 7) timeAgo = diffDays + ' days ago';
+              else if(diffDays < 30) timeAgo = Math.floor(diffDays/7) + 'w ago';
+              else timeAgo = newsDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            %>
+            <%= timeAgo %>
+          </div>
+        </a>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+
     <div class="footer-top">
       <div class="footer-brand">
         <div class="logo">BBI <span>·</span> Bharat Business Index</div>

@@ -155,6 +155,19 @@ function generateSitemap() {
     console.error('Sitemap digest error:', e);
   }
 
+  // SEO Landing Pages
+  try {
+    const landingPages = db.prepare(`SELECT slug, updated_at FROM seo_landing_pages WHERE active=1`).all();
+    landingPages.forEach(p => {
+      urls.push({ 
+        loc: `${baseUrl}/${p.slug}`, 
+        priority: '0.9', 
+        changefreq: 'weekly',
+        lastmod: p.updated_at ? new Date(p.updated_at).toISOString().split('T')[0] : undefined
+      });
+    });
+  } catch(e) { console.error('Sitemap landing pages error:', e); }
+
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 `;
@@ -162,10 +175,10 @@ function generateSitemap() {
   urls.forEach(u => {
     xml += `  <url>
     <loc>${u.loc}</loc>
+    ${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
-  </url>
-`;
+  </url>\n`;
   });
 
   xml += `</urlset>`;

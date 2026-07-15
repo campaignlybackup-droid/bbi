@@ -1,0 +1,345 @@
+<%- include('layout-top') %>
+
+<% if(flash.success) { %><div class="alert alert-success"><%= flash.success %></div><% } %>
+<% if(flash.error) { %><div class="alert alert-error"><%= flash.error %></div><% } %>
+
+<div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
+  <a href="/admin/seo-landing-pages" style="font-size:13px;color:var(--navy)"><i class="ti ti-arrow-left"></i> Back to All Pages</a>
+  <% if(page && page.id) { %>
+    <a href="/<%= page.slug %>" target="_blank" class="btn btn-outline btn-sm"><i class="ti ti-external-link"></i> Preview Live Page</a>
+  <% } %>
+</div>
+
+<form method="POST" action="/admin/seo-landing-pages<%= page && page.id ? '/' + page.id : '' %>" id="landingPageForm" onsubmit="return prepareFormSubmit()">
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+
+  <!-- LEFT COLUMN: Content -->
+  <div>
+
+    <!-- META -->
+    <div class="form-card">
+      <h3><i class="ti ti-seo" style="color:var(--navy);margin-right:6px"></i> SEO Meta Data</h3>
+      <div class="form-group">
+        <label>Page Title (Title Tag) <span style="color:var(--error)">*</span></label>
+        <input type="text" name="title" id="fieldTitle" value="<%= page ? page.title : '' %>" required maxlength="70" placeholder="e.g. Top 10 Colleges in Jaipur 2026 — BBI Rankings">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          <span id="titleCharCount">0</span>/70 characters — keep under 60 for best Google display
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Meta Description</label>
+        <textarea name="meta_description" id="fieldMeta" rows="2" maxlength="160" placeholder="e.g. Discover the top-ranked colleges in Jaipur based on reviews, facilities, and placement records. Independent rankings by Bharat Business Index."><%= page ? page.meta_description : '' %></textarea>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          <span id="metaCharCount">0</span>/160 characters — aim for 120-155 characters
+        </div>
+      </div>
+      <div class="form-group">
+        <label>URL Slug <span style="color:var(--error)">*</span></label>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="font-size:13px;color:var(--text-muted)">bharatbusinessindex.com/</span>
+          <input type="text" name="slug" id="fieldSlug" value="<%= page ? page.slug : '' %>" required placeholder="top-college-in-jaipur" style="flex:1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Target Keywords <span style="font-size:11px;color:var(--text-muted);font-weight:400">(comma-separated)</span></label>
+        <input type="text" name="target_keywords" value="<%= page ? page.target_keywords : '' %>" placeholder="e.g. top college jaipur, best college jaipur, colleges in jaipur">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Used for internal linking and related page matching</div>
+      </div>
+    </div>
+
+    <!-- HERO / H1 -->
+    <div class="form-card">
+      <h3><i class="ti ti-heading" style="color:var(--navy);margin-right:6px"></i> Page Heading</h3>
+      <div class="form-group">
+        <label>H1 Heading <span style="color:var(--error)">*</span></label>
+        <input type="text" name="h1" id="fieldH1" value="<%= page ? page.h1 : '' %>" required placeholder="e.g. Top Colleges in Jaipur">
+      </div>
+      <div class="form-group">
+        <label>Subtitle (under H1)</label>
+        <input type="text" name="hero_subtitle" value="<%= page ? page.hero_subtitle : '' %>" placeholder="e.g. Independent rankings based on student reviews, infrastructure, and placement data">
+      </div>
+    </div>
+
+    <!-- CONTENT SECTIONS -->
+    <div class="form-card">
+      <h3><i class="ti ti-file-text" style="color:var(--navy);margin-right:6px"></i> Content Sections</h3>
+      
+      <div class="form-group">
+        <label>Quick Answer / Intro <span style="font-size:11px;color:var(--gold);font-weight:600">(AEO — Featured Snippet)</span></label>
+        <textarea name="content_intro" rows="4" placeholder="Write a concise 40-60 word direct answer to the page's main query. This appears in the 'Quick Answer' box and is optimized for Google Featured Snippets and voice search."><%= page ? page.content_intro : '' %></textarea>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          <i class="ti ti-bulb" style="color:var(--gold)"></i> Tip: Start with a direct answer like "The top colleges in Jaipur include..." — Google uses this for featured snippets and AI overviews.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Main Body Content <span style="font-size:11px;color:var(--text-muted);font-weight:400">(HTML allowed)</span></label>
+        <textarea name="content_body" rows="12" placeholder="Write comprehensive, SEO-optimized content about the topic. Use <h2>, <h3>, <ul>, <ol>, <strong> tags. Include relevant statistics, comparisons, and detailed information."><%= page ? page.content_body : '' %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Conclusion / CTA Section <span style="font-size:11px;color:var(--text-muted);font-weight:400">(HTML allowed)</span></label>
+        <textarea name="content_conclusion" rows="4" placeholder="Closing paragraph with a call-to-action. e.g. 'Looking for more detailed rankings? Browse our complete listings or submit your institution for review.'"><%= page ? page.content_conclusion : '' %></textarea>
+      </div>
+    </div>
+
+    <!-- FAQ BUILDER -->
+    <div class="form-card">
+      <h3><i class="ti ti-help-circle" style="color:var(--navy);margin-right:6px"></i> FAQ Section <span style="font-size:11px;color:var(--gold);font-weight:600;margin-left:8px">Schema.org FAQPage</span></h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Each Q&A pair generates FAQPage structured data (rich results in Google). Target "People Also Ask" queries.</p>
+      
+      <div id="faqContainer">
+        <!-- FAQ items populated by JS -->
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addFaqItem()" style="margin-top:12px">
+        <i class="ti ti-plus"></i> Add FAQ
+      </button>
+      <input type="hidden" name="faq_json" id="faqJsonField" value="">
+    </div>
+
+    <!-- INTERNAL LINKS -->
+    <div class="form-card">
+      <h3><i class="ti ti-link" style="color:var(--navy);margin-right:6px"></i> Manual Internal Links</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Add manual cross-links to other pages. Related SEO pages are auto-detected by keyword overlap.</p>
+      
+      <div id="linksContainer">
+        <!-- Link items populated by JS -->
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addLinkItem()" style="margin-top:12px">
+        <i class="ti ti-plus"></i> Add Link
+      </button>
+      <input type="hidden" name="internal_links_json" id="linksJsonField" value="">
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: Settings & Actions -->
+  <div>
+
+    <!-- PUBLISH -->
+    <div class="form-card" style="position:sticky;top:80px">
+      <h3><i class="ti ti-send" style="color:var(--navy);margin-right:6px"></i> Publish</h3>
+      <div class="form-group">
+        <label>Status</label>
+        <select name="active">
+          <option value="1" <%= page && page.active ? 'selected' : '' %>>Active (Live)</option>
+          <option value="0" <%= page && !page.active ? 'selected' : '' %>>Draft (Hidden)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sort Order</label>
+        <input type="number" name="sort_order" value="<%= page ? page.sort_order : 0 %>" min="0">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Lower = higher priority in listings</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px">
+        <i class="ti ti-device-floppy"></i> <%= page && page.id ? 'Update Page' : 'Create Page' %>
+      </button>
+    </div>
+
+    <!-- LINKING -->
+    <div class="form-card">
+      <h3><i class="ti ti-database" style="color:var(--navy);margin-right:6px"></i> Auto-Link Rankings</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Optionally link to a City + Category to auto-fetch and display ranked businesses.</p>
+      <div class="form-group">
+        <label>City</label>
+        <select name="linked_city_id">
+          <option value="">— None —</option>
+          <% cities.forEach(c => { %>
+          <option value="<%= c.id %>" <%= page && page.linked_city_id == c.id ? 'selected' : '' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="linked_category_id">
+          <option value="">— None —</option>
+          <% categories.forEach(cat => { %>
+          <option value="<%= cat.id %>" <%= page && page.linked_category_id == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <!-- SCHEMA -->
+    <div class="form-card">
+      <h3><i class="ti ti-code" style="color:var(--navy);margin-right:6px"></i> Schema Type</h3>
+      <div class="form-group">
+        <select name="schema_type">
+          <option value="WebPage" <%= page && page.schema_type === 'WebPage' ? 'selected' : '' %>>WebPage (default)</option>
+          <option value="ItemList" <%= page && page.schema_type === 'ItemList' ? 'selected' : '' %>>ItemList (for rankings)</option>
+          <option value="Article" <%= page && page.schema_type === 'Article' ? 'selected' : '' %>>Article</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>OG Image URL</label>
+        <input type="text" name="og_image" value="<%= page ? (page.og_image || '') : '' %>" placeholder="https://...">
+      </div>
+    </div>
+
+    <!-- AI ASSIST -->
+    <div class="ai-panel">
+      <h3><i class="ti ti-wand"></i> AI Content Assistant</h3>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Auto-generate optimized content for this page using AI.</p>
+      <button type="button" class="ai-btn" id="aiGenerateBtn" onclick="generateAiContent()">
+        <i class="ti ti-sparkles"></i> Generate All Content
+      </button>
+      <button type="button" class="ai-btn" onclick="generateAiFaq()" style="margin-top:6px">
+        <i class="ti ti-help-circle"></i> Generate FAQs
+      </button>
+    </div>
+
+  </div>
+
+</div>
+</form>
+
+<script>
+// Character counters
+const titleInput = document.getElementById('fieldTitle');
+const metaInput = document.getElementById('fieldMeta');
+const titleCount = document.getElementById('titleCharCount');
+const metaCount = document.getElementById('metaCharCount');
+
+function updateCounts() {
+  titleCount.textContent = titleInput.value.length;
+  titleCount.style.color = titleInput.value.length > 60 ? 'var(--error)' : 'var(--text-muted)';
+  metaCount.textContent = metaInput.value.length;
+  metaCount.style.color = metaInput.value.length > 155 ? 'var(--error)' : 'var(--text-muted)';
+}
+titleInput.addEventListener('input', updateCounts);
+metaInput.addEventListener('input', updateCounts);
+updateCounts();
+
+// Auto-generate slug from H1
+const h1Input = document.getElementById('fieldH1');
+const slugInput = document.getElementById('fieldSlug');
+<% if(!page || !page.id) { %>
+h1Input.addEventListener('input', function() {
+  slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+});
+<% } %>
+
+// ===== FAQ BUILDER =====
+let faqItems = [];
+try { faqItems = JSON.parse('<%= page ? (page.faq_json || "[]").replace(/\'/g, "\\'").replace(/\n/g, "\\n") : "[]" %>'); } catch(e) { faqItems = []; }
+
+function renderFaqs() {
+  const container = document.getElementById('faqContainer');
+  container.innerHTML = '';
+  faqItems.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative';
+    div.innerHTML = `
+      <button type="button" onclick="removeFaqItem(${idx})" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--error);cursor:pointer;font-size:16px"><i class="ti ti-x"></i></button>
+      <div class="form-group" style="margin-bottom:8px">
+        <label style="font-size:11px">Question ${idx + 1}</label>
+        <input type="text" value="${escHtml(item.question)}" onchange="faqItems[${idx}].question=this.value" placeholder="e.g. What are the best colleges in Jaipur?">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label style="font-size:11px">Answer</label>
+        <textarea rows="2" onchange="faqItems[${idx}].answer=this.value" placeholder="Provide a concise, helpful answer...">${escHtml(item.answer)}</textarea>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addFaqItem() { faqItems.push({ question: '', answer: '' }); renderFaqs(); }
+function removeFaqItem(idx) { faqItems.splice(idx, 1); renderFaqs(); }
+
+// ===== INTERNAL LINKS BUILDER =====
+let linkItems = [];
+try { linkItems = JSON.parse('<%= page ? (page.internal_links_json || "[]").replace(/\'/g, "\\'").replace(/\n/g, "\\n") : "[]" %>'); } catch(e) { linkItems = []; }
+
+function renderLinks() {
+  const container = document.getElementById('linksContainer');
+  container.innerHTML = '';
+  linkItems.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+    div.innerHTML = `
+      <input type="text" value="${escHtml(item.text)}" onchange="linkItems[${idx}].text=this.value" placeholder="Link text" style="flex:1">
+      <input type="text" value="${escHtml(item.url)}" onchange="linkItems[${idx}].url=this.value" placeholder="/path/to/page" style="flex:1">
+      <button type="button" onclick="removeLinkItem(${idx})" style="background:none;border:none;color:var(--error);cursor:pointer;font-size:16px"><i class="ti ti-x"></i></button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addLinkItem() { linkItems.push({ text: '', url: '' }); renderLinks(); }
+function removeLinkItem(idx) { linkItems.splice(idx, 1); renderLinks(); }
+
+// Escape HTML for safe insertion
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Initialize
+renderFaqs();
+renderLinks();
+
+// ===== FORM SUBMISSION =====
+function prepareFormSubmit() {
+  // Serialize FAQ and links to JSON hidden fields
+  const cleanFaqs = faqItems.filter(f => f.question && f.answer);
+  document.getElementById('faqJsonField').value = JSON.stringify(cleanFaqs);
+  
+  const cleanLinks = linkItems.filter(l => l.text && l.url);
+  document.getElementById('linksJsonField').value = JSON.stringify(cleanLinks);
+  return true;
+}
+
+// ===== AI GENERATION =====
+async function generateAiContent() {
+  const btn = document.getElementById('aiGenerateBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  try {
+    const h1 = document.getElementById('fieldH1').value || document.getElementById('fieldTitle').value;
+    const res = await fetch('/admin/api/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'seo_landing_page', businessInfo: { name: h1, type: 'seo_landing_page' } })
+    });
+    const data = await res.json();
+    if (data.success && data.data) {
+      if (data.data.title) document.getElementById('fieldTitle').value = data.data.title;
+      if (data.data.meta_description) document.getElementById('fieldMeta').value = data.data.meta_description;
+      if (data.data.content) document.querySelector('[name="content_intro"]').value = data.data.content.substring(0, 300);
+      updateCounts();
+      alert('AI content generated! Review and adjust as needed.');
+    } else {
+      alert('AI generation failed. You can write content manually.');
+    }
+  } catch(e) {
+    alert('AI service unavailable. Write content manually.');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+async function generateAiFaq() {
+  try {
+    const h1 = document.getElementById('fieldH1').value;
+    const res = await fetch('/admin/api/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'seo_faq', businessInfo: { name: h1, type: 'seo_landing_page' } })
+    });
+    const data = await res.json();
+    if (data.success && data.data && data.data.faqs) {
+      faqItems = data.data.faqs;
+      renderFaqs();
+      alert('FAQs generated! Review and adjust as needed.');
+    }
+  } catch(e) {
+    alert('AI service unavailable.');
+  }
+}
+</script>
+
+<%- include('layout-bottom') %>

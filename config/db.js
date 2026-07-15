@@ -155,6 +155,31 @@ db.exec(`
     active INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS seo_landing_pages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    meta_description TEXT,
+    h1 TEXT NOT NULL,
+    hero_subtitle TEXT,
+    content_intro TEXT,
+    content_body TEXT,
+    content_conclusion TEXT,
+    faq_json TEXT DEFAULT '[]',
+    internal_links_json TEXT DEFAULT '[]',
+    linked_city_id INTEGER,
+    linked_category_id INTEGER,
+    og_image TEXT,
+    schema_type TEXT DEFAULT 'WebPage',
+    target_keywords TEXT,
+    sort_order INTEGER DEFAULT 0,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (linked_city_id) REFERENCES cities(id),
+    FOREIGN KEY (linked_category_id) REFERENCES categories(id)
+  );
 `);
 try { db.exec('ALTER TABLE businesses ADD COLUMN area_id INTEGER'); } catch (e) {}
 

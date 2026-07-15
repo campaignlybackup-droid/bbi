@@ -92,6 +92,9 @@ router.get('/', cacheMiddleware, (req, res) => {
   // Custom Rankings
   const customRankings = customRankingService.getAllPages().slice(0, 6);
 
+  // SEO Landing Pages (Featured)
+  const featuredSeoPages = seoLandingPageService.getAllPages(true).slice(0, 6);
+
   // SEO FAQ
   const seoContent = getSeoContent('homepage');
   let faqs = [];
@@ -108,6 +111,7 @@ router.get('/', cacheMiddleware, (req, res) => {
     topCities, 
     featuredRankings,
     customRankings,
+    featuredSeoPages,
     faqSchema, 
     faqs,
     organizationSchema,
@@ -827,6 +831,120 @@ router.get('/:locationSlug/:catSlug', cacheMiddleware, (req, res, next) => {
   }
 
   return next();
+});
+
+// ============================================
+// SEO LANDING PAGES (Admin-Managed)
+// ============================================
+const seoLandingPageService = require('../services/seoLandingPageService');
+
+router.get('/:seoPageSlug', cacheMiddleware, (req, res, next) => {
+  const slug = req.params.seoPageSlug;
+  // Skip reserved paths
+  if (['methodology', 'privacy-policy', 'legal', 'get-listed', 'city', 'rankings', 'news', 'blog', 'admin', 'api', 'digest', 'search', 'about'].includes(slug)) return next();
+
+  try {
+    const page = seoLandingPageService.getPageBySlug(slug);
+    if (!page) return next(); // Fall through to variations
+
+    // Fetch linked businesses if city+category are set
+    let rankings = [];
+    if (page.linked_city_id && page.linked_category_id) {
+      rankings = seoLandingPageService.getLinkedBusinesses(page.linked_city_id, page.linked_category_id);
+    }
+
+    // Parse FAQs
+    let faqs = [];
+    if (page.faq_json) {
+      try { faqs = JSON.parse(page.faq_json); } catch (e) {}
+    }
+
+    // Parse internal links
+    let internalLinks = [];
+    if (page.internal_links_json) {
+      try { internalLinks = JSON.parse(page.internal_links_json); } catch (e) {}
+    }
+
+    // Get related SEO landing pages (by keyword overlap)
+    const relatedPages = seoLandingPageService.getRelatedLandingPages(page.id, page.target_keywords, 6);
+
+    // Get related standard rankings
+    let relatedRankings = [];
+    if (page.linked_city_id && page.linked_category_id) {
+      relatedRankings = getRelatedRankings(page.linked_city_id, page.linked_category_id, 4);
+    }
+
+    // Build structured data
+    const breadcrumbItems = [{ name: 'Home', url: '/' }];
+    if (page.city_name) {
+      breadcrumbItems.push({ name: page.city_name, url: `/city/${page.city_slug}` });
+    }
+    breadcrumbItems.push({ name: page.h1 });
+    const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems);
+
+    // FAQ Schema
+    const faqSchema = faqs.length > 0 ? generateFaqSchema(faqs) : null;
+
+    // ItemList Schema (if we have rankings)
+    let itemListSchema = null;
+    if (rankings.length > 0 && page.schema_type === 'ItemList') {
+      itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: page.h1,
+        description: page.meta_description,
+        numberOfItems: rankings.length,
+        itemListElement: rankings.map((b, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: b.name,
+          url: `${BASE_URL}/business/${b.slug}`,
+        })),
+      };
+    }
+
+    // WebPage Schema with SpeakableSpecification (AEO)
+    const webPageSchema = {
+      '@context': 'https://schema.org',
+      '@type': page.schema_type || 'WebPage',
+      name: page.title,
+      description: page.meta_description,
+      url: `${BASE_URL}/${page.slug}`,
+      dateModified: page.updated_at || page.created_at,
+      publisher: {
+        '@type': 'Organization',
+        name: 'Bharat Business Index',
+        logo: { '@type': 'ImageObject', url: `${BASE_URL}/images/logo.png` }
+      },
+      speakable: {
+        '@type': 'SpeakableSpecification',
+        xpath: [
+          "/html/head/title",
+          "/html/head/meta[@name='description']/@content"
+        ]
+      }
+    };
+
+    res.render('seo-landing-page', {
+      page,
+      rankings,
+      faqs,
+      internalLinks,
+      relatedPages,
+      relatedRankings,
+      breadcrumbSchema,
+      faqSchema,
+      itemListSchema,
+      webPageSchema,
+      title: page.title,
+      metaDescription: page.meta_description,
+      canonicalUrl: `${BASE_URL}/${page.slug}`,
+      ogImage: page.og_image || undefined,
+    });
+  } catch (e) {
+    console.error('SEO Landing Page error:', e);
+    return next();
+  }
 });
 
 // ============================================

@@ -154,6 +154,13 @@ app.use((req, res, next) => {
   } catch (e) {
     res.locals.globalSettings = {};
   }
+
+  // Inject latest news for the footer
+  try {
+    res.locals.latestNews = db.prepare('SELECT title, slug, created_at FROM news WHERE active = 1 ORDER BY created_at DESC LIMIT 4').all();
+  } catch (e) {
+    res.locals.latestNews = [];
+  }
   
   next();
 });

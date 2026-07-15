@@ -1,0 +1,55 @@
+<%- include('partials/header') %>
+
+<% if (typeof faqSchema !== 'undefined' && faqSchema) { %>
+<script type="application/ld+json"><%- JSON.stringify(faqSchema) %></script>
+<% } %>
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <%= variation.title %>
+  </div>
+  <h1><%= variation.h1 || variation.title %></h1>
+  <% if(variation.meta_description) { %>
+  <p><%= variation.meta_description %></p>
+  <% } %>
+</div>
+
+<div class="section">
+  <% if(variation.content) { %>
+  <div class="editorial-content" style="margin-bottom:var(--space-6)">
+    <div style="font-size:var(--font-size-base);color:var(--text-secondary);line-height:1.7">
+      <%- variation.content %>
+    </div>
+  </div>
+  <% } %>
+
+  <% if(faqs && faqs.length > 0) { %>
+  <div style="margin-top:var(--space-6)">
+    <h2 class="section-title" style="margin-bottom:var(--space-4)">Frequently Asked Questions</h2>
+    <% faqs.forEach(faq => { %>
+    <div style="border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:8px;overflow:hidden;background:white">
+      <button type="button" onclick="this.nextElementSibling.style.maxHeight=this.nextElementSibling.style.maxHeight==='0px'?this.nextElementSibling.scrollHeight+'px':'0px'" style="width:100%;text-align:left;padding:16px 20px;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font);font-size:var(--font-size-base);font-weight:600;color:var(--text-primary)">
+        <span><%= faq.question %></span>
+        <i class="ti ti-chevron-down" style="color:var(--text-muted)"></i>
+      </button>
+      <div style="max-height:0;overflow:hidden;transition:max-height 0.3s ease">
+        <div style="padding:0 20px 16px;font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7">
+          <%- faq.answer %>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <% if(!variation.content && (!faqs || faqs.length === 0)) { %>
+  <div class="profile-card text-center" style="padding:var(--space-10)">
+    <i class="ti ti-file-text" style="font-size:36px;color:var(--text-muted)"></i>
+    <div style="font-size:var(--font-size-base);font-weight:600;color:var(--text-primary);margin-top:var(--space-3)">Content coming soon</div>
+    <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-top:var(--space-1)">This page is currently being built out with fresh content.</div>
+  </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>
