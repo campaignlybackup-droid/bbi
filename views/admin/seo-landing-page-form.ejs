@@ -112,13 +112,31 @@
       <input type="hidden" name="internal_links_json" id="linksJsonField" value="">
     </div>
 
+    <!-- MANUAL RANKINGS MANAGER -->
+    <div class="form-card">
+      <h3><i class="ti ti-list-numbers" style="color:var(--navy);margin-right:6px"></i> Manual Business Rankings <span style="font-size:11px;color:var(--gold);font-weight:600;margin-left:8px">Priority Over Auto-Link</span></h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Manually ranked businesses appear first on the page, followed by auto-linked City+Category results. Use the search panel or copy from another page to add businesses.</p>
+      
+      <div id="manualRankingsContainer">
+        <!-- Populated by JS -->
+      </div>
+      
+      <div id="manualRankingsEmpty" style="text-align:center;padding:24px;color:var(--text-muted);background:#f8fafc;border-radius:8px;border:1px dashed var(--border);display:none">
+        <i class="ti ti-list-numbers" style="font-size:28px;display:block;margin-bottom:8px;color:#A0AEC0"></i>
+        <div style="font-size:13px">No manual rankings yet.</div>
+        <div style="font-size:11px;margin-top:4px">Use the <strong>Business Search</strong> or <strong>Copy from Page</strong> panel on the right to add businesses.</div>
+      </div>
+      
+      <input type="hidden" name="manual_rankings_json" id="manualRankingsJsonField" value="">
+    </div>
+
   </div>
 
   <!-- RIGHT COLUMN: Settings & Actions -->
   <div>
 
     <!-- PUBLISH -->
-    <div class="form-card" style="position:sticky;top:80px">
+    <div class="form-card">
       <h3><i class="ti ti-send" style="color:var(--navy);margin-right:6px"></i> Publish</h3>
       <div class="form-group">
         <label>Status</label>
@@ -159,6 +177,96 @@
           <option value="<%= cat.id %>" <%= page && page.linked_category_id == cat.id ? 'selected' : '' %>><%= cat.name %></option>
           <% }) %>
         </select>
+      </div>
+    </div>
+
+    <!-- BUSINESS SEARCH PANEL -->
+    <div class="form-card">
+      <h3><i class="ti ti-search" style="color:var(--navy);margin-right:6px"></i> Business Search</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Search and filter businesses to add to your manual rankings.</p>
+      
+      <!-- Search Input -->
+      <div class="form-group" style="margin-bottom:8px">
+        <input type="text" id="bizSearchQuery" placeholder="Search by name, address, or tags..." oninput="debouncedBizSearch()" style="font-size:13px">
+      </div>
+      
+      <!-- Filter Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select id="bizSearchCategory" onchange="runBizSearch()" style="font-size:12px;padding:6px 8px">
+          <option value="">All Categories</option>
+          <% categories.forEach(cat => { %>
+          <option value="<%= cat.id %>"><%= cat.name %></option>
+          <% }) %>
+        </select>
+        <select id="bizSearchCity" onchange="runBizSearch()" style="font-size:12px;padding:6px 8px">
+          <option value="">All Cities</option>
+          <% cities.forEach(c => { %>
+          <option value="<%= c.id %>"><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <select id="bizSearchRating" onchange="runBizSearch()" style="font-size:12px;padding:6px 8px">
+          <option value="">Any Rating</option>
+          <option value="3">3+ Stars</option>
+          <option value="3.5">3.5+ Stars</option>
+          <option value="4">4+ Stars</option>
+          <option value="4.5">4.5+ Stars</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;margin:0;padding:6px 0">
+          <input type="checkbox" id="bizSearchVerified" onchange="runBizSearch()" style="width:auto;margin:0">
+          Verified Only
+        </label>
+      </div>
+      
+      <!-- Search Results -->
+      <div id="bizSearchResults" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;display:none">
+        <!-- Populated by JS -->
+      </div>
+      <div id="bizSearchEmpty" style="display:none;text-align:center;padding:16px;font-size:12px;color:var(--text-muted);background:#f8fafc;border-radius:6px;border:1px dashed var(--border)">
+        <i class="ti ti-search-off" style="font-size:20px;display:block;margin-bottom:6px"></i>
+        No businesses match your filters.
+      </div>
+      <div id="bizSearchHint" style="text-align:center;padding:16px;font-size:12px;color:var(--text-muted);background:#f8fafc;border-radius:6px;border:1px dashed var(--border)">
+        <i class="ti ti-search" style="font-size:20px;display:block;margin-bottom:6px;color:#A0AEC0"></i>
+        Type a name or select filters to search businesses.
+      </div>
+    </div>
+
+    <!-- COPY RANKINGS FROM PAGE -->
+    <div class="form-card">
+      <h3><i class="ti ti-copy" style="color:var(--navy);margin-right:6px"></i> Copy Rankings from Page</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Import business rankings from another existing page directly into this page's manual rankings.</p>
+      
+      <div class="form-group" style="margin-bottom:8px">
+        <label style="font-size:11px">Source Type</label>
+        <select id="copySourceType" onchange="loadCopySources()" style="font-size:12px">
+          <option value="">— Select source type —</option>
+          <option value="seo_landing_page">SEO Landing Page</option>
+          <option value="custom_ranking">Custom Ranking Page</option>
+          <option value="city_category">City + Category Rankings</option>
+        </select>
+      </div>
+      
+      <div class="form-group" style="margin-bottom:8px">
+        <label style="font-size:11px">Source Page</label>
+        <select id="copySourcePage" onchange="previewSourceRankings()" style="font-size:12px" disabled>
+          <option value="">— Select source type first —</option>
+        </select>
+      </div>
+      
+      <!-- Source Preview -->
+      <div id="copySourcePreview" style="display:none;max-height:250px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:12px">
+        <!-- Populated by JS -->
+      </div>
+      
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn btn-primary btn-sm" id="copyAllBtn" onclick="copyAllRankings()" disabled style="flex:1;justify-content:center;font-size:12px">
+          <i class="ti ti-copy"></i> Copy All Rankings
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="copyMergeBtn" onclick="mergeRankings()" disabled style="flex:1;justify-content:center;font-size:12px">
+          <i class="ti ti-git-merge"></i> Merge with Existing
+        </button>
       </div>
     </div>
 
@@ -281,6 +389,346 @@ function escHtml(str) {
 renderFaqs();
 renderLinks();
 
+// ============================================
+// MANUAL RANKINGS SYSTEM
+// ============================================
+let manualRankings = [];
+try { 
+  manualRankings = JSON.parse('<%= page ? (page.manual_rankings_json || "[]").replace(/\'/g, "\\'").replace(/\n/g, "\\n") : "[]" %>'); 
+} catch(e) { manualRankings = []; }
+
+// Cache for business names (fetched once)
+let bizNameCache = {};
+
+function renderManualRankings() {
+  const container = document.getElementById('manualRankingsContainer');
+  const emptyEl = document.getElementById('manualRankingsEmpty');
+  
+  if (manualRankings.length === 0) {
+    container.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  
+  emptyEl.style.display = 'none';
+  
+  let html = '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">';
+  html += '<table style="width:100%;margin:0;box-shadow:none;font-size:12px">';
+  html += '<thead><tr style="background:#f8fafc"><th style="padding:8px 12px;width:50px">#</th><th style="padding:8px 12px">Business</th><th style="padding:8px 12px;width:80px">Info</th><th style="padding:8px 12px;width:70px;text-align:center">Move</th><th style="padding:8px 12px;width:40px"></th></tr></thead>';
+  html += '<tbody>';
+  
+  manualRankings.forEach((item, idx) => {
+    const name = item.business_name || bizNameCache[item.business_id] || `Business #${item.business_id}`;
+    const city = item.city_name || '';
+    const cat = item.category_name || '';
+    html += `<tr style="border-top:1px solid #f1f5f9">`;
+    html += `<td style="padding:8px 12px;font-weight:700;color:var(--navy)">${item.rank_position}</td>`;
+    html += `<td style="padding:8px 12px">
+      <strong>${escHtml(name)}</strong>
+      ${city || cat ? '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">' + escHtml(cat) + (cat && city ? ' · ' : '') + escHtml(city) + '</div>' : ''}
+    </td>`;
+    html += `<td style="padding:8px 12px">
+      ${item.google_rating ? '<span style="color:var(--gold)">★</span> ' + item.google_rating : ''}
+    </td>`;
+    html += `<td style="padding:8px 12px;text-align:center">
+      <button type="button" onclick="moveRanking(${idx}, -1)" style="background:none;border:none;cursor:pointer;color:var(--navy);padding:2px" ${idx === 0 ? 'disabled style="opacity:0.3;cursor:default"' : ''}><i class="ti ti-arrow-up"></i></button>
+      <button type="button" onclick="moveRanking(${idx}, 1)" style="background:none;border:none;cursor:pointer;color:var(--navy);padding:2px" ${idx === manualRankings.length - 1 ? 'disabled style="opacity:0.3;cursor:default"' : ''}><i class="ti ti-arrow-down"></i></button>
+    </td>`;
+    html += `<td style="padding:8px 12px"><button type="button" onclick="removeRanking(${idx})" style="background:none;border:none;color:var(--error);cursor:pointer;font-size:14px"><i class="ti ti-x"></i></button></td>`;
+    html += `</tr>`;
+  });
+  
+  html += '</tbody></table></div>';
+  html += `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;text-align:right">${manualRankings.length} business${manualRankings.length !== 1 ? 'es' : ''} ranked</div>`;
+  container.innerHTML = html;
+}
+
+function addToManualRankings(business) {
+  // Check if already in rankings
+  if (manualRankings.some(r => r.business_id === business.id || r.business_id === String(business.id))) {
+    alert('This business is already in the rankings.');
+    return;
+  }
+  
+  const nextRank = manualRankings.length + 1;
+  manualRankings.push({
+    business_id: business.id,
+    rank_position: nextRank,
+    business_name: business.name,
+    city_name: business.city_name || '',
+    category_name: business.category_name || '',
+    google_rating: business.google_rating || 0
+  });
+  
+  bizNameCache[business.id] = business.name;
+  renderManualRankings();
+}
+
+function removeRanking(idx) {
+  manualRankings.splice(idx, 1);
+  // Renumber
+  manualRankings.forEach((r, i) => { r.rank_position = i + 1; });
+  renderManualRankings();
+}
+
+function moveRanking(idx, direction) {
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= manualRankings.length) return;
+  
+  const temp = manualRankings[idx];
+  manualRankings[idx] = manualRankings[newIdx];
+  manualRankings[newIdx] = temp;
+  
+  // Renumber
+  manualRankings.forEach((r, i) => { r.rank_position = i + 1; });
+  renderManualRankings();
+}
+
+renderManualRankings();
+
+// ============================================
+// ADVANCED BUSINESS SEARCH
+// ============================================
+let searchTimeout = null;
+
+function debouncedBizSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(runBizSearch, 300);
+}
+
+async function runBizSearch() {
+  const query = document.getElementById('bizSearchQuery').value;
+  const categoryId = document.getElementById('bizSearchCategory').value;
+  const cityId = document.getElementById('bizSearchCity').value;
+  const minRating = document.getElementById('bizSearchRating').value;
+  const verified = document.getElementById('bizSearchVerified').checked ? '1' : '';
+  
+  // If nothing selected, show hint
+  if (!query && !categoryId && !cityId && !minRating && !verified) {
+    document.getElementById('bizSearchResults').style.display = 'none';
+    document.getElementById('bizSearchEmpty').style.display = 'none';
+    document.getElementById('bizSearchHint').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('bizSearchHint').style.display = 'none';
+  
+  const params = new URLSearchParams();
+  if (query) params.set('q', query);
+  if (categoryId) params.set('category_id', categoryId);
+  if (cityId) params.set('city_id', cityId);
+  if (minRating) params.set('min_rating', minRating);
+  if (verified) params.set('verified', verified);
+  params.set('limit', '30');
+  
+  try {
+    const res = await fetch('/admin/api/seo-landing-pages/search-businesses?' + params.toString());
+    const data = await res.json();
+    
+    if (data.success && data.data.length > 0) {
+      renderSearchResults(data.data);
+    } else {
+      document.getElementById('bizSearchResults').style.display = 'none';
+      document.getElementById('bizSearchEmpty').style.display = 'block';
+    }
+  } catch(e) {
+    console.error('Search error:', e);
+  }
+}
+
+function renderSearchResults(businesses) {
+  const container = document.getElementById('bizSearchResults');
+  document.getElementById('bizSearchEmpty').style.display = 'none';
+  container.style.display = 'block';
+  
+  let html = '<table style="width:100%;margin:0;box-shadow:none;font-size:11px">';
+  html += '<thead><tr style="background:#f8fafc;position:sticky;top:0"><th style="padding:6px 8px">Name</th><th style="padding:6px 8px">Category</th><th style="padding:6px 8px">City</th><th style="padding:6px 8px">Rating</th><th style="padding:6px 8px;width:40px"></th></tr></thead>';
+  html += '<tbody>';
+  
+  businesses.forEach(biz => {
+    const alreadyAdded = manualRankings.some(r => r.business_id == biz.id);
+    html += `<tr style="border-top:1px solid #f1f5f9;${alreadyAdded ? 'opacity:0.5' : ''}">`;
+    html += `<td style="padding:6px 8px"><strong>${escHtml(biz.name)}</strong>${biz.verified ? ' <i class="ti ti-circle-check-filled" style="color:var(--success);font-size:12px"></i>' : ''}</td>`;
+    html += `<td style="padding:6px 8px;color:var(--text-secondary)">${escHtml(biz.category_name || '—')}</td>`;
+    html += `<td style="padding:6px 8px;color:var(--text-secondary)">${escHtml(biz.city_name || '—')}</td>`;
+    html += `<td style="padding:6px 8px"><span style="color:var(--gold)">★</span> ${biz.google_rating || '—'} <span style="color:var(--text-muted)">(${biz.google_review_count || 0})</span></td>`;
+    
+    if (alreadyAdded) {
+      html += `<td style="padding:6px 8px"><span style="font-size:10px;color:var(--text-muted)">Added</span></td>`;
+    } else {
+      html += `<td style="padding:6px 8px"><button type="button" onclick='addToManualRankings(${JSON.stringify({id: biz.id, name: biz.name, city_name: biz.city_name, category_name: biz.category_name, google_rating: biz.google_rating})})' style="background:var(--navy);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;white-space:nowrap"><i class="ti ti-plus" style="font-size:10px"></i> Add</button></td>`;
+    }
+    html += `</tr>`;
+  });
+  
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ============================================
+// COPY RANKINGS FROM ANOTHER PAGE
+// ============================================
+let cachedSources = null;
+let previewedRankings = [];
+
+async function loadCopySources() {
+  const sourceType = document.getElementById('copySourceType').value;
+  const sourceSelect = document.getElementById('copySourcePage');
+  const previewDiv = document.getElementById('copySourcePreview');
+  
+  document.getElementById('copyAllBtn').disabled = true;
+  document.getElementById('copyMergeBtn').disabled = true;
+  previewDiv.style.display = 'none';
+  previewedRankings = [];
+  
+  if (!sourceType) {
+    sourceSelect.innerHTML = '<option value="">— Select source type first —</option>';
+    sourceSelect.disabled = true;
+    return;
+  }
+  
+  // Fetch sources if not cached
+  if (!cachedSources) {
+    try {
+      const pageId = '<%= page ? page.id : 0 %>';
+      const res = await fetch('/admin/api/seo-landing-pages/available-sources?exclude_id=' + pageId);
+      const data = await res.json();
+      if (data.success) cachedSources = data.data;
+    } catch(e) {
+      console.error('Failed to load sources:', e);
+      return;
+    }
+  }
+  
+  sourceSelect.disabled = false;
+  sourceSelect.innerHTML = '<option value="">— Select a page —</option>';
+  
+  if (sourceType === 'seo_landing_page' && cachedSources.seoPages) {
+    cachedSources.seoPages.forEach(p => {
+      const label = p.h1 + (p.city_name && p.category_name ? ` (${p.category_name} · ${p.city_name})` : '');
+      sourceSelect.innerHTML += `<option value="${p.id}">${escHtml(label)}</option>`;
+    });
+  } else if (sourceType === 'custom_ranking' && cachedSources.customPages) {
+    cachedSources.customPages.forEach(p => {
+      sourceSelect.innerHTML += `<option value="${p.id}">${escHtml(p.title)} (${p.item_count} items)</option>`;
+    });
+  } else if (sourceType === 'city_category' && cachedSources.cityCategoryCombos) {
+    cachedSources.cityCategoryCombos.forEach(c => {
+      sourceSelect.innerHTML += `<option value="${c.city_id}_${c.category_id}">${escHtml(c.category_name)} in ${escHtml(c.city_name)}</option>`;
+    });
+  }
+}
+
+async function previewSourceRankings() {
+  const sourceType = document.getElementById('copySourceType').value;
+  const sourceValue = document.getElementById('copySourcePage').value;
+  const previewDiv = document.getElementById('copySourcePreview');
+  
+  if (!sourceType || !sourceValue) {
+    previewDiv.style.display = 'none';
+    document.getElementById('copyAllBtn').disabled = true;
+    document.getElementById('copyMergeBtn').disabled = true;
+    previewedRankings = [];
+    return;
+  }
+  
+  const params = new URLSearchParams();
+  params.set('source_type', sourceType);
+  
+  if (sourceType === 'city_category') {
+    const [cityId, categoryId] = sourceValue.split('_');
+    params.set('city_id', cityId);
+    params.set('category_id', categoryId);
+  } else {
+    params.set('source_id', sourceValue);
+  }
+  
+  try {
+    const res = await fetch('/admin/api/seo-landing-pages/source-rankings?' + params.toString());
+    const data = await res.json();
+    
+    if (data.success && data.data.length > 0) {
+      previewedRankings = data.data;
+      renderCopyPreview(data.data);
+      document.getElementById('copyAllBtn').disabled = false;
+      document.getElementById('copyMergeBtn').disabled = false;
+    } else {
+      previewDiv.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-muted)">No rankings found for this source.</div>';
+      previewDiv.style.display = 'block';
+      previewedRankings = [];
+      document.getElementById('copyAllBtn').disabled = true;
+      document.getElementById('copyMergeBtn').disabled = true;
+    }
+  } catch(e) {
+    console.error('Preview error:', e);
+  }
+}
+
+function renderCopyPreview(rankings) {
+  const container = document.getElementById('copySourcePreview');
+  container.style.display = 'block';
+  
+  let html = '<table style="width:100%;margin:0;box-shadow:none;font-size:11px">';
+  html += '<thead><tr style="background:#f0fdf4;position:sticky;top:0"><th style="padding:6px 8px;width:30px">#</th><th style="padding:6px 8px">Business</th><th style="padding:6px 8px">Rating</th></tr></thead>';
+  html += '<tbody>';
+  
+  rankings.forEach((r, idx) => {
+    html += `<tr style="border-top:1px solid #f1f5f9">`;
+    html += `<td style="padding:6px 8px;font-weight:700;color:var(--navy)">${r.rank_position || idx + 1}</td>`;
+    html += `<td style="padding:6px 8px"><strong>${escHtml(r.name)}</strong><div style="font-size:10px;color:var(--text-muted)">${escHtml(r.category_name || '')}${r.category_name && r.city_name ? ' · ' : ''}${escHtml(r.city_name || '')}</div></td>`;
+    html += `<td style="padding:6px 8px">${r.google_rating ? '<span style="color:var(--gold)">★</span> ' + r.google_rating : '—'}</td>`;
+    html += `</tr>`;
+  });
+  
+  html += '</tbody></table>';
+  html += `<div style="padding:8px 12px;background:#f0fdf4;font-size:11px;color:#166534;text-align:center;border-top:1px solid #bbf7d0">${rankings.length} business${rankings.length !== 1 ? 'es' : ''} found</div>`;
+  container.innerHTML = html;
+}
+
+function copyAllRankings() {
+  if (previewedRankings.length === 0) return;
+  if (!confirm(`Replace current manual rankings with ${previewedRankings.length} businesses from this source?`)) return;
+  
+  manualRankings = previewedRankings.map((r, idx) => ({
+    business_id: r.id,
+    rank_position: idx + 1,
+    business_name: r.name,
+    city_name: r.city_name || '',
+    category_name: r.category_name || '',
+    google_rating: r.google_rating || 0
+  }));
+  
+  renderManualRankings();
+  // Scroll to rankings section
+  document.getElementById('manualRankingsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function mergeRankings() {
+  if (previewedRankings.length === 0) return;
+  
+  let added = 0;
+  previewedRankings.forEach(r => {
+    if (!manualRankings.some(mr => mr.business_id == r.id)) {
+      manualRankings.push({
+        business_id: r.id,
+        rank_position: manualRankings.length + 1,
+        business_name: r.name,
+        city_name: r.city_name || '',
+        category_name: r.category_name || '',
+        google_rating: r.google_rating || 0
+      });
+      added++;
+    }
+  });
+  
+  // Renumber
+  manualRankings.forEach((r, i) => { r.rank_position = i + 1; });
+  
+  renderManualRankings();
+  alert(`Merged ${added} new business${added !== 1 ? 'es' : ''} into rankings. ${previewedRankings.length - added} already existed.`);
+  document.getElementById('manualRankingsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // ===== FORM SUBMISSION =====
 function prepareFormSubmit() {
   // Serialize FAQ and links to JSON hidden fields
@@ -289,6 +737,18 @@ function prepareFormSubmit() {
   
   const cleanLinks = linkItems.filter(l => l.text && l.url);
   document.getElementById('linksJsonField').value = JSON.stringify(cleanLinks);
+  
+  // Serialize manual rankings — only save business_id and rank_position
+  const cleanRankings = manualRankings.map(r => ({
+    business_id: r.business_id,
+    rank_position: r.rank_position,
+    business_name: r.business_name || '',
+    city_name: r.city_name || '',
+    category_name: r.category_name || '',
+    google_rating: r.google_rating || 0
+  }));
+  document.getElementById('manualRankingsJsonField').value = JSON.stringify(cleanRankings);
+  
   return true;
 }
 

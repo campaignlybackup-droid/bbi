@@ -806,6 +806,56 @@ router.post('/seo-landing-pages/:id/duplicate', requireAuth, (req, res) => {
   res.redirect('/admin/seo-landing-pages');
 });
 
+// ============================================
+// SEO LANDING PAGES — AJAX API ENDPOINTS
+// ============================================
+
+// Advanced business search with filters
+router.get('/api/seo-landing-pages/search-businesses', requireAuth, (req, res) => {
+  try {
+    const { q, category_id, city_id, min_rating, verified, limit } = req.query;
+    const results = seoLandingPageService.searchBusinesses({
+      query: q,
+      categoryId: category_id,
+      cityId: city_id,
+      minRating: min_rating,
+      verified,
+      limit: limit || 50
+    });
+    res.json({ success: true, data: results });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
+// Get rankings from a source page
+router.get('/api/seo-landing-pages/source-rankings', requireAuth, (req, res) => {
+  try {
+    const { source_type, source_id, city_id, category_id } = req.query;
+    let sourceParams = {};
+    if (source_type === 'city_category') {
+      sourceParams = { cityId: city_id, categoryId: category_id };
+    } else {
+      sourceParams = { id: source_id };
+    }
+    const rankings = seoLandingPageService.getRankingsFromSource(source_type, sourceParams);
+    res.json({ success: true, data: rankings });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
+// Get all available sources for copying
+router.get('/api/seo-landing-pages/available-sources', requireAuth, (req, res) => {
+  try {
+    const excludeId = req.query.exclude_id || 0;
+    const sources = seoLandingPageService.getAvailableSources(excludeId);
+    res.json({ success: true, data: sources });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
 router.get('/pages', requireAuth, (req, res) => {
   const cities = db.prepare('SELECT id, name, slug FROM cities WHERE active=1').all();
   const categories = db.prepare('SELECT id, name, slug FROM categories WHERE active=1').all();
